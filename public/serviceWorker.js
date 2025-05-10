@@ -5,15 +5,26 @@ const CACHE_NAME = 'household-app-v2';
 const SW_VERSION = 'v2.0.0';
 console.log('[ServiceWorker] Version ' + SW_VERSION + ' wird geladen');
 
+// Bestimme die Basis-URL basierend auf der aktuellen Umgebung
+const getBaseUrl = () => {
+  // In Entwicklungsumgebung ist es '/' (lokaler Server)
+  // In Produktionsumgebung (Render.com) ist es leer, damit URLs relativ sind
+  return '';
+};
+
+const baseUrl = getBaseUrl();
+console.log('[ServiceWorker] Verwende Base-URL:', baseUrl || '/');
+
+// Cache-URLs mit korrigierten Pfaden für Render.com
 const URLS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/site.webmanifest',
-  '/icons/android-chrome-192x192.png',
-  '/icons/android-chrome-512x512.png',
-  '/icons/apple-touch-icon.png',
-  '/icons/favicon-16x16.png',
-  '/icons/favicon-32x32.png'
+  baseUrl + '/',
+  baseUrl + '/index.html',
+  baseUrl + 'site.webmanifest', // Ohne führenden Slash
+  baseUrl + 'icons/android-chrome-192x192.png', // Ohne führenden Slash
+  baseUrl + 'icons/android-chrome-512x512.png', // Ohne führenden Slash
+  baseUrl + 'icons/apple-touch-icon.png', // Ohne führenden Slash
+  baseUrl + 'icons/favicon-16x16.png', // Ohne führenden Slash
+  baseUrl + 'icons/favicon-32x32.png' // Ohne führenden Slash
 ];
 
 // Bei Installation des ServiceWorkers
