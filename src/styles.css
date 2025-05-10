@@ -1,0 +1,1175 @@
+/* Moderne Glasmorphismus-Stile für die Anwendung */
+/* iOS Notch und Safe Area Hack */
+html {
+  min-height: calc(100% + env(safe-area-inset-top));
+  padding: (env(safe-area-inset-top)) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  background-attachment: fixed;
+}
+
+/* Unerwünschte Navbar ausblenden */
+.sc-Qotzb.kHkOTo, nav[class*="sc-"], .sc-Qotzb, .kHkOTo, nav[class*="sc-Qotzb"], nav[class*="kHkOTo"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  pointer-events: none !important;
+}
+
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+:root {
+  /* Helles Theme (Standard) */
+  --primary: #605CFF;
+  --primary-rgb: 96, 92, 255;
+  --primary-hover: #4A47D5;
+  --secondary: #FF6E6A;
+  --secondary-rgb: 255, 110, 106;
+  --background-gradient: linear-gradient(120deg, #F5F7FA, #E4E8F0);
+  --card-background: rgba(255, 255, 255, 0.95);
+  --text: #2C3E50;
+  --text-secondary: #7F8C8D;
+  --border: rgba(255, 255, 255, 0.08);
+  --success: #00E096;
+  --warning: #FFB156;
+  --error: #FF647C;
+  --button-radius: 12px;
+  --card-radius: 20px;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  --glass-blur: blur(20px);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+/* Dunkles Theme-Support (via Media Query) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --primary: #8E80FF;
+    --primary-hover: #7C6FE8;
+    --secondary: #FF8480;
+    --background-gradient: linear-gradient(120deg, #232526, #1F2937);
+    --card-background: rgba(31, 41, 55, 0.95);
+    --text: #E5E7EB;
+    --text-secondary: #9CA3AF;
+    --border: rgba(255, 255, 255, 0.08);
+    --success: #10B981;
+    --warning: #F59E0B;
+    --error: #EF4444;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  }
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--background-gradient);
+  color: var(--text);
+  min-height: 100vh;
+  letter-spacing: -0.025em;
+  line-height: 1.6;
+}
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  position: relative;
+  box-sizing: border-box;
+}
+
+html, body {
+  overflow-x: hidden;
+  height: 100%;
+}
+
+#root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Glasmorphismus-Effekt für Karten */
+.card {
+  background: var(--card-background);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--card-radius);
+  border: var(--glass-border);
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtiler Hover-Effekt für Karten */
+.card:hover {
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+}
+
+/* Moderner Button */
+.button {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--button-radius);
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(96, 92, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 0.025em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.button:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(96, 92, 255, 0.3);
+}
+
+.button:active {
+  transform: translateY(0);
+}
+
+/* Glasmorphismus Input */
+.input {
+  width: 100%;
+  padding: 16px;
+  border: var(--glass-border);
+  border-radius: var(--button-radius);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  color: var(--text);
+  margin-bottom: 20px;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  letter-spacing: -0.025em;
+}
+
+/* Verbesserte Input-Felder für Fullscreen-Modals */
+.fullscreen-modal .input, 
+.modal-content .input,
+.fadeIn .input {
+  border: 1px solid var(--border-color);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  background: rgba(255, 255, 255, 0.05);
+  -webkit-appearance: none; /* Safari/iOS */
+  appearance: none;
+  border-radius: var(--button-radius);
+}
+
+/* iOS-spezifische Anpassungen */
+@supports (-webkit-touch-callout: none) {
+  /* iOS-spezifischer Code */
+  .fullscreen-modal .input, 
+  .modal-content .input,
+  .fadeIn .input {
+    font-size: 16px; /* Verhindert Zoom auf iOS beim Fokussieren */
+    padding: 12px 16px;
+    background-color: rgba(255, 255, 255, 0.1);
+    line-height: 1.4;
+  }
+  
+  /* Fix für iOS-Text-Inputs */
+  .fullscreen-modal input[type="text"],
+  .fullscreen-modal input[type="date"],
+  .fullscreen-modal input[type="number"],
+  .fullscreen-modal select,
+  .modal-content input[type="text"],
+  .modal-content input[type="date"],
+  .modal-content input[type="number"],
+  .modal-content select,
+  .fadeIn input[type="text"],
+  .fadeIn input[type="date"],
+  .fadeIn input[type="number"],
+  .fadeIn select {
+    -webkit-appearance: none;
+    appearance: none;
+    border-radius: var(--button-radius);
+    min-height: 44px; /* Bessere Touch-Targets für iOS */
+  }
+
+  /* Fix für iOS-Textareas */
+  .fullscreen-modal textarea,
+  .modal-content textarea,
+  .fadeIn textarea {
+    -webkit-appearance: none;
+    appearance: none;
+    min-height: 80px;
+    padding: 12px 16px;
+  }
+}
+
+/* Hover-Effekt */
+.fullscreen-modal .input:hover, 
+.modal-content .input:hover,
+.fadeIn .input:hover {
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
+/* Verbesserte Range-Inputs (Slider) in Fullscreen-Modals */
+.fullscreen-modal input[type="range"], 
+.modal-content input[type="range"],
+.fadeIn input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: #e0e0e0;
+  outline: none;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+/* Thumb-Styles (der verschiebbare Teil) */
+.fullscreen-modal input[type="range"]::-webkit-slider-thumb,
+.modal-content input[type="range"]::-webkit-slider-thumb,
+.fadeIn input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--primary);
+  cursor: pointer;
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  transition: all 0.2s ease;
+}
+
+.fullscreen-modal input[type="range"]::-moz-range-thumb,
+.modal-content input[type="range"]::-moz-range-thumb,
+.fadeIn input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  background: var(--primary);
+  cursor: pointer;
+  border-radius: 50%;
+  border: none;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  transition: all 0.2s ease;
+}
+
+/* Hover-Effekt für den Thumb */
+.fullscreen-modal input[type="range"]::-webkit-slider-thumb:hover,
+.modal-content input[type="range"]::-webkit-slider-thumb:hover,
+.fadeIn input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+
+.fullscreen-modal input[type="range"]::-moz-range-thumb:hover,
+.modal-content input[type="range"]::-moz-range-thumb:hover,
+.fadeIn input[type="range"]::-moz-range-thumb:hover {
+  transform: scale(1.1);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(96, 92, 255, 0.2);
+}
+
+.input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+/* Überschriften */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.05em;
+  margin-bottom: 0.75em;
+}
+
+h1 {
+  font-size: 2.5rem;
+  background: linear-gradient(120deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
+
+h2 {
+  font-size: 2rem;
+  color: var(--text);
+}
+
+h3 {
+  font-size: 1.5rem;
+  color: var(--text);
+}
+
+/* Divider */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+  margin: 24px 0;
+  border: none;
+}
+
+/* Spezielle Stile für Bottom-Navigation */
+.bottom-nav-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 999;
+  padding: 8px 16px;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  pointer-events: auto;
+}
+
+.bottom-nav-card {
+  margin: 0 !important;
+  padding: 8px 0 !important;
+  max-width: 600px;
+  margin: 0 auto !important;
+  box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.12) !important;
+  border-radius: 20px !important;
+}
+
+.bottom-nav-items {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  padding: 8px 0;
+  width: 20%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.bottom-nav-item:active {
+  transform: scale(0.9);
+}
+
+.bottom-nav-icon {
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+/* Label wird nicht mehr angezeigt */
+.bottom-nav-label {
+  display: none;
+}
+
+.bottom-nav-item .bottom-nav-icon {
+  padding: 10px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.bottom-nav-item.active .bottom-nav-icon {
+  color: var(--primary);
+  background-color: rgba(var(--primary-rgb), 0.1);
+  box-shadow: 0 2px 8px rgba(var(--primary-rgb), 0.15);
+}
+
+/* Spezielle Anpassung für das Shopping-Cart-Icon */
+.bottom-nav-item .bottom-nav-icon svg[data-component-name="FiShoppingCart"] {
+  transform: translateY(-1px);
+}
+
+/* Stelle sicher, dass die App genügend Platz für die Bottom-Navigation lässt */
+.app, #root, .container {
+  padding-bottom: 90px;
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: var(--primary);
+  color: white;
+  margin-right: 8px;
+}
+
+/* Utility-Klassen */
+.mt-1 { margin-top: 8px; }
+.mt-2 { margin-top: 16px; }
+.mt-3 { margin-top: 24px; }
+.mt-4 { margin-top: 32px; }
+.mb-1 { margin-bottom: 8px; }
+.mb-2 { margin-bottom: 16px; }
+.mb-3 { margin-bottom: 24px; }
+.mb-4 { margin-bottom: 32px; }
+.text-center { text-align: center; }
+
+/* Support fu00fcr iOS Notch und Safe Areas */
+.container, .app {
+  padding-top: max(8px, var(--safe-area-inset-top) - 25px);
+  padding-right: max(8px, var(--safe-area-inset-right));
+  padding-left: max(8px, var(--safe-area-inset-left));
+  padding-bottom: max(8px, var(--safe-area-inset-bottom) - 25px);
+}
+
+/* Stelle sicher, dass Blobs die gesamte Seite fu00fcllen, auch die Notch-Region */
+.bg-shape-1 {
+  top: calc(-100px - var(--));
+}
+
+/* Navigation Buttons */
+.nav-buttons {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.nav-buttons::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+.nav-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: var(--button-radius);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: none;
+  color: var(--text);
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: none !important;
+  white-space: nowrap;
+}
+
+.nav-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+}
+
+.nav-button.active {
+  background: var(--primary);
+  color: white;
+}
+
+.nav-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Dashboard Mini-Cards */
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.mini-card {
+  border-radius: 16px;
+  color: white;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  position: relative;
+  overflow: hidden;
+  height: 110px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  backdrop-filter: blur(5px);
+}
+
+.mini-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.mini-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), transparent);
+  z-index: 1;
+}
+
+.mini-card-icon {
+  margin-bottom: 12px;
+  opacity: 0.9;
+  z-index: 2;
+}
+
+.mini-card-content {
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.mini-card-content h3 {
+  font-size: 2.2rem;
+  margin: 0 0 4px 0;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.mini-card-content p {
+  font-size: 0.85rem;
+  margin: 0;
+  opacity: 0.8;
+  font-weight: 500;
+}
+
+/* Mobile Optimierungen */
+@media (max-width: 640px) {
+  .nav-button span {
+    display: none;
+  }
+  
+  .nav-button {
+    padding: 12px;
+  }
+  
+  .hide-on-mobile {
+    display: none;
+  }
+  
+  .card {
+    padding: 16px;
+  }
+  
+  h1 {
+    font-size: 1.8rem;
+  }
+  
+  h2 {
+    font-size: 1.4rem;
+  }
+  
+  .badge {
+    font-size: 0.75rem;
+  }
+  
+  .dashboard-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .mini-card {
+    padding: 12px;
+  }
+  
+  .mini-card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+  }
+  
+  .mini-card-content h3 {
+    font-size: 1.5rem;
+  }
+}
+
+/* Animationen fu00fcr elegante U00dcbergu00e4nge */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes typingAnimation {
+  0%, 20% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+  80%, 100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+}
+
+/* Custom Scrollbar für Desktop */
+@media (min-width: 768px) {
+  /* Scrollbar-Track (Hintergrund) */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background-color: rgba(var(--background-rgb), 0.1);
+    border-radius: 10px;
+  }
+  
+  /* Scrollbar-Thumb (der bewegliche Teil) */
+  ::-webkit-scrollbar-thumb {
+    background-color: rgba(var(--text-secondary-rgb), 0.25);
+    border-radius: 10px;
+    transition: background-color 0.3s ease;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(var(--text-secondary-rgb), 0.4);
+  }
+  
+  /* Spezifische Scrollbar für den Chat */
+  .messageList::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .messageList::-webkit-scrollbar-thumb {
+    background-color: rgba(var(--primary-rgb), 0.3);
+  }
+  
+  .messageList::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(var(--primary-rgb), 0.5);
+  }
+}
+
+/* Chat-Styling */
+.message {
+  max-width: 70%;
+  padding: 10px 15px;
+  margin-bottom: 12px;
+  border-radius: 18px;
+  position: relative;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background-color: var(--background-secondary);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.message-sent {
+  align-self: flex-end;
+  background-color: var(--primary);
+  color: white;
+  margin-left: auto;
+  border-bottom-right-radius: 4px;
+}
+
+.message-received {
+  align-self: flex-start;
+  background-color: var(--background);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-bottom-left-radius: 4px;
+}
+
+.message-sender {
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.message-content {
+  line-height: 1.4;
+}
+
+.message-time {
+  font-size: 0.7rem;
+  margin-top: 4px;
+  text-align: right;
+}
+
+.message-status {
+  display: inline-flex;
+  margin-left: 4px;
+  color: #4FC3F7;
+}
+
+.date-divider {
+  margin: 15px 0;
+  position: relative;
+  text-align: center;
+}
+
+.date-divider .badge {
+  display: inline-block;
+  padding: 5px 10px;
+  background-color: var(--background);
+  border-radius: 15px;
+  font-size: 12px;
+  color: var(--textSecondary);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border: 1px solid var(--border);
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.card-footer {
+  padding: 10px 15px;
+  border-top: 1px solid var(--border);
+}
+
+.fadeIn {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+/* Glasmorphismus Hintergrund-Elemente */
+.bg-shape {
+  position: fixed;
+  border-radius: 50%;
+  background: linear-gradient(45deg, var(--primary), var(--secondary));
+  opacity: 0.15;
+  filter: blur(60px);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.bg-shape-1 {
+  width: 400px;
+  height: 400px;
+  top: -100px;
+  right: -100px;
+}
+
+.bg-shape-2 {
+  width: 350px;
+  height: 350px;
+  bottom: -80px;
+  left: -80px;
+}
+
+.bg-shape-3 {
+  width: 250px;
+  height: 250px;
+  top: 30%;
+  right: 15%;
+}
+
+/* Kontext-Menü */
+.context-menu {
+  position: fixed !important; /* Override inline styles */
+  z-index: 1000 !important; /* Sehr hoher z-index um sicherzustellen, dass es über allem ist */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(var(--primary-rgb), 0.15);
+  /* Animation für das Ein- und Ausblenden */
+  animation: fadeIn 0.2s ease-out;
+  border-radius: 12px;
+  background: var(--card-background);
+  padding: 8px 0;
+  min-width: 200px;
+  max-width: 300px;
+}
+
+/* Vollbild-Menü für Einstellungen */
+.fullscreen-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 20px;
+  overflow-y: auto;
+}
+
+.fullscreen-menu-content {
+  width: 100%;
+  max-width: 700px;
+  padding: 30px;
+  margin: 0 auto;
+  border-radius: 16px;
+}
+
+/* Theme-Auswahloptionen */
+.theme-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.theme-option {
+  border: 2px solid transparent;
+  border-radius: 12px;
+  overflow: hidden;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.theme-option:hover {
+  transform: translateY(-3px);
+}
+
+.theme-option.active {
+  border-color: var(--primary);
+}
+
+.theme-preview {
+  height: 100px;
+  width: 100%;
+  border-radius: 8px 8px 0 0;
+}
+
+.light-preview {
+  background: #FFFFFF;
+  position: relative;
+  color: #605CFF;
+}
+
+.dark-preview {
+  background: linear-gradient(135deg, #1F2937, #111827);
+  position: relative;
+  color: #8E80FF;
+}
+
+.cute-preview {
+  background: #FAF5FF;
+  position: relative;
+  color: #9D5BF0;
+}
+
+.cute-preview::after {
+  content: '💜';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 24px;
+  opacity: 0.5;
+}
+
+.system-preview {
+  background: linear-gradient(135deg, #F2F2F7 50%, #1C1C1E 50%);
+  position: relative;
+}
+
+.theme-selection {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.theme-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  background: var(--card-background);
+  font-size: 14px;
+  color: var(--text);
+}
+
+.context-menu-header {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  padding: 10px 15px;
+  font-weight: 500;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 8px;
+}
+
+/* Kontext-Menü Items */
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 15px;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  border-radius: 8px;
+  margin: 0 5px;
+}
+
+.context-menu-item:hover {
+  background-color: var(--background-hover);
+  transform: translateY(-1px);
+}
+
+.context-menu-item:active {
+  transform: translateY(0);
+}
+
+/* Fullscreen-Menu Header mit einheitlichem Stil */
+.fullscreen-menu-content > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.fullscreen-menu-content > div:first-child h2 {
+  margin: 0;
+  line-height: 1;
+}
+
+.fullscreen-menu-content > div:first-child .icon-button {
+  margin: 0;
+  padding: 8px;
+}
+
+/* Theme-Optionen */
+.theme-selection {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  width: 100%;
+  margin: 20px 0;
+}
+
+@media (max-width: 600px) {
+  .theme-selection {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+.theme-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  max-width: 80px;
+}
+
+.theme-option .theme-preview {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.theme-option:hover .theme-preview {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.theme-option.active .theme-preview {
+  border-color: var(--primary);
+  box-shadow: 0 2px 6px rgba(var(--primary-rgb), 0.2);
+}
+
+.theme-option .theme-label {
+  color: var(--text);
+}
+
+/* Profilbereich */
+.profile-overview {
+  margin-bottom: 20px;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.profile-picture {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: var(--bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid var(--primary);
+}
+
+.profile-picture:hover {
+  transform: scale(1.05);
+}
+
+.profile-info h4 {
+  margin: 0 0 5px 0;
+  font-size: 1.2rem;
+}
+
+.profile-info p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.profile-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Icon Buttons */
+.icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--card-background);
+  border: 1px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.icon-button:hover {
+  background-color: var(--primary-hover);
+  color: white;
+}
+
+.icon-button.active {
+  background-color: var(--primary);
+  color: white;
+}
+
+.icon-button-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  border: none;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.icon-button-add:hover {
+  opacity: 0.9;
+  transform: scale(1.05);
+}
+
+/* Fullscreen Menu */
+.fullscreen-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  z-index: 10000; /* Höher als die Bottom-Navbar (999) */
+  padding: 10px;
+  overflow-y: auto;
+}
+
+.fullscreen-menu-content {
+  background-color: var(--card-background);
+  border-radius: var(--card-radius);
+  width: 100%;
+  max-width: 90%;
+  margin-top: 40px;
+  margin-bottom: 40px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+  backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  overflow-y: auto;
+}
+
+/* Standard Breiten für Fullscreen-Menüs */
+.fullscreen-menu-content.dialog-small {
+  max-width: 400px;
+}
+
+.fullscreen-menu-content.dialog-medium {
+  max-width: 600px;
+}
+
+.fullscreen-menu-content.dialog-large {
+  max-width: 800px;
+}
+
+/* Responsive Anpassungen für das Fullscreen Menu */
+@media (min-width: 768px) {
+  .fullscreen-menu-content {
+    max-width: 700px;
+    padding: 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  .fullscreen-menu {
+    padding: 0;
+  }
+  
+  .fullscreen-menu-content {
+    border-radius: 0;
+    max-width: 100%;
+    margin: 0;
+    min-height: 100%;
+    padding-top: 70px;
+    padding-bottom: 100px; /* Extra Padding unten, damit der Speichern-Button erreichbar ist */
+  }
+}

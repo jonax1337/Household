@@ -1,0 +1,506 @@
+Database:
+
+--
+-- Datenbank: `household_db`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `apartments`
+--
+
+CREATE TABLE `apartments` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `address` text DEFAULT NULL,
+  `size` decimal(8,2) DEFAULT NULL,
+  `rent` decimal(10,2) DEFAULT NULL,
+  `move_in_date` date DEFAULT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `financial_transactions`
+--
+
+CREATE TABLE `financial_transactions` (
+  `id` int(11) NOT NULL,
+  `apartment_id` int(11) NOT NULL,
+  `description` varchar(255) NOT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `date` date NOT NULL,
+  `payer_id` int(11) NOT NULL,
+  `created_by` int(11) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `invite_codes`
+--
+
+CREATE TABLE `invite_codes` (
+  `id` int(11) NOT NULL,
+  `apartment_id` int(11) NOT NULL,
+  `code` varchar(10) NOT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT 1,
+  `expires_at` datetime DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `messages`
+--
+
+CREATE TABLE `messages` (
+  `id` int(11) NOT NULL,
+  `apartment_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `content` text NOT NULL,
+  `edited` tinyint(1) DEFAULT 0,
+  `encrypted` tinyint(1) DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `shopping_items`
+--
+
+CREATE TABLE `shopping_items` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `category` varchar(50) DEFAULT 'sonstiges',
+  `quantity` varchar(50) DEFAULT '1',
+  `checked` tinyint(1) DEFAULT 0,
+  `list_id` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `shopping_lists`
+--
+
+CREATE TABLE `shopping_lists` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `date` date DEFAULT NULL,
+  `apartment_id` int(11) NOT NULL,
+  `archived` tinyint(1) DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `task`
+--
+
+CREATE TABLE `task` (
+  `id` int(11) NOT NULL,
+  `apartment_id` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` text DEFAULT NULL,
+  `points` int(11) DEFAULT 0,
+  `is_recurring` tinyint(1) DEFAULT 0,
+  `interval_type` enum('daily','weekly','monthly') DEFAULT NULL,
+  `interval_value` int(11) DEFAULT 1,
+  `color` varchar(20) DEFAULT '#4a90e2',
+  `is_deleted` tinyint(1) DEFAULT 0,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  `deleted_by_user_id` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `task_edit_history`
+--
+
+CREATE TABLE `task_edit_history` (
+  `id` int(11) NOT NULL,
+  `task_id` int(11) NOT NULL,
+  `edited_by_user_id` int(11) NOT NULL,
+  `field_name` varchar(50) NOT NULL,
+  `old_value` text DEFAULT NULL,
+  `new_value` text DEFAULT NULL,
+  `edited_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `task_instance`
+--
+
+CREATE TABLE `task_instance` (
+  `id` int(11) NOT NULL,
+  `task_id` int(11) NOT NULL,
+  `apartment_id` int(11) NOT NULL,
+  `assigned_user_id` int(11) DEFAULT NULL,
+  `due_date` date NOT NULL,
+  `status` enum('offen','erledigt','übersprungen') DEFAULT 'offen',
+  `completed_at` timestamp NULL DEFAULT NULL,
+  `completed_by_user_id` int(11) DEFAULT NULL,
+  `points_awarded` int(11) DEFAULT 0,
+  `is_deleted` tinyint(1) DEFAULT 0,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  `deleted_by_user_id` int(11) DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `transaction_participants`
+--
+
+CREATE TABLE `transaction_participants` (
+  `id` int(11) NOT NULL,
+  `transaction_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `users`
+--
+
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `user_apartments`
+--
+
+CREATE TABLE `user_apartments` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `apartment_id` int(11) NOT NULL,
+  `is_owner` tinyint(1) DEFAULT 0,
+  `points` int(11) DEFAULT 0,
+  `joined_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `user_settings`
+--
+
+CREATE TABLE `user_settings` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `theme` varchar(20) DEFAULT 'system',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Indizes der exportierten Tabellen
+--
+
+--
+-- Indizes für die Tabelle `apartments`
+--
+ALTER TABLE `apartments`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- Indizes für die Tabelle `financial_transactions`
+--
+ALTER TABLE `financial_transactions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `apartment_id` (`apartment_id`),
+  ADD KEY `payer_id` (`payer_id`),
+  ADD KEY `created_by` (`created_by`);
+
+--
+-- Indizes für die Tabelle `invite_codes`
+--
+ALTER TABLE `invite_codes`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `code` (`code`),
+  ADD KEY `apartment_id` (`apartment_id`),
+  ADD KEY `created_by` (`created_by`);
+
+--
+-- Indizes für die Tabelle `messages`
+--
+ALTER TABLE `messages`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `apartment_id` (`apartment_id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `idx_messages_encrypted` (`encrypted`);
+
+--
+-- Indizes für die Tabelle `shopping_items`
+--
+ALTER TABLE `shopping_items`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `list_id` (`list_id`);
+
+--
+-- Indizes für die Tabelle `shopping_lists`
+--
+ALTER TABLE `shopping_lists`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `apartment_id` (`apartment_id`);
+
+--
+-- Indizes für die Tabelle `task`
+--
+ALTER TABLE `task`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `apartment_id` (`apartment_id`),
+  ADD KEY `deleted_by_user_id` (`deleted_by_user_id`);
+
+--
+-- Indizes für die Tabelle `task_edit_history`
+--
+ALTER TABLE `task_edit_history`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `task_id` (`task_id`),
+  ADD KEY `edited_by_user_id` (`edited_by_user_id`);
+
+--
+-- Indizes für die Tabelle `task_instance`
+--
+ALTER TABLE `task_instance`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `task_id` (`task_id`),
+  ADD KEY `apartment_id` (`apartment_id`),
+  ADD KEY `assigned_user_id` (`assigned_user_id`),
+  ADD KEY `completed_by_user_id` (`completed_by_user_id`),
+  ADD KEY `deleted_by_user_id` (`deleted_by_user_id`);
+
+--
+-- Indizes für die Tabelle `transaction_participants`
+--
+ALTER TABLE `transaction_participants`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_transaction_user` (`transaction_id`,`user_id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- Indizes für die Tabelle `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `email` (`email`);
+
+--
+-- Indizes für die Tabelle `user_apartments`
+--
+ALTER TABLE `user_apartments`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_user_apartment` (`user_id`,`apartment_id`),
+  ADD KEY `apartment_id` (`apartment_id`);
+
+--
+-- Indizes für die Tabelle `user_settings`
+--
+ALTER TABLE `user_settings`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `user_id` (`user_id`);
+
+--
+-- AUTO_INCREMENT für exportierte Tabellen
+--
+
+--
+-- AUTO_INCREMENT für Tabelle `apartments`
+--
+ALTER TABLE `apartments`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `financial_transactions`
+--
+ALTER TABLE `financial_transactions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `invite_codes`
+--
+ALTER TABLE `invite_codes`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `messages`
+--
+ALTER TABLE `messages`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `shopping_items`
+--
+ALTER TABLE `shopping_items`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `shopping_lists`
+--
+ALTER TABLE `shopping_lists`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `task`
+--
+ALTER TABLE `task`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `task_edit_history`
+--
+ALTER TABLE `task_edit_history`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `task_instance`
+--
+ALTER TABLE `task_instance`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `transaction_participants`
+--
+ALTER TABLE `transaction_participants`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `users`
+--
+ALTER TABLE `users`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `user_apartments`
+--
+ALTER TABLE `user_apartments`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `user_settings`
+--
+ALTER TABLE `user_settings`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- Constraints der exportierten Tabellen
+--
+
+--
+-- Constraints der Tabelle `apartments`
+--
+ALTER TABLE `apartments`
+  ADD CONSTRAINT `apartments_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints der Tabelle `financial_transactions`
+--
+ALTER TABLE `financial_transactions`
+  ADD CONSTRAINT `financial_transactions_ibfk_1` FOREIGN KEY (`apartment_id`) REFERENCES `apartments` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `financial_transactions_ibfk_2` FOREIGN KEY (`payer_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `financial_transactions_ibfk_3` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints der Tabelle `invite_codes`
+--
+ALTER TABLE `invite_codes`
+  ADD CONSTRAINT `invite_codes_ibfk_1` FOREIGN KEY (`apartment_id`) REFERENCES `apartments` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `invite_codes_ibfk_2` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints der Tabelle `messages`
+--
+ALTER TABLE `messages`
+  ADD CONSTRAINT `messages_ibfk_1` FOREIGN KEY (`apartment_id`) REFERENCES `apartments` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `messages_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints der Tabelle `shopping_items`
+--
+ALTER TABLE `shopping_items`
+  ADD CONSTRAINT `shopping_items_ibfk_1` FOREIGN KEY (`list_id`) REFERENCES `shopping_lists` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints der Tabelle `shopping_lists`
+--
+ALTER TABLE `shopping_lists`
+  ADD CONSTRAINT `shopping_lists_ibfk_1` FOREIGN KEY (`apartment_id`) REFERENCES `apartments` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints der Tabelle `task`
+--
+ALTER TABLE `task`
+  ADD CONSTRAINT `task_ibfk_1` FOREIGN KEY (`apartment_id`) REFERENCES `apartments` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `task_ibfk_2` FOREIGN KEY (`deleted_by_user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints der Tabelle `task_edit_history`
+--
+ALTER TABLE `task_edit_history`
+  ADD CONSTRAINT `task_edit_history_ibfk_1` FOREIGN KEY (`task_id`) REFERENCES `task` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `task_edit_history_ibfk_2` FOREIGN KEY (`edited_by_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints der Tabelle `task_instance`
+--
+ALTER TABLE `task_instance`
+  ADD CONSTRAINT `task_instance_ibfk_1` FOREIGN KEY (`task_id`) REFERENCES `task` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `task_instance_ibfk_2` FOREIGN KEY (`apartment_id`) REFERENCES `apartments` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `task_instance_ibfk_3` FOREIGN KEY (`assigned_user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `task_instance_ibfk_4` FOREIGN KEY (`completed_by_user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `task_instance_ibfk_5` FOREIGN KEY (`deleted_by_user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints der Tabelle `transaction_participants`
+--
+ALTER TABLE `transaction_participants`
+  ADD CONSTRAINT `transaction_participants_ibfk_1` FOREIGN KEY (`transaction_id`) REFERENCES `financial_transactions` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `transaction_participants_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints der Tabelle `user_apartments`
+--
+ALTER TABLE `user_apartments`
+  ADD CONSTRAINT `user_apartments_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `user_apartments_ibfk_2` FOREIGN KEY (`apartment_id`) REFERENCES `apartments` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints der Tabelle `user_settings`
+--
+ALTER TABLE `user_settings`
+  ADD CONSTRAINT `user_settings_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+COMMIT;

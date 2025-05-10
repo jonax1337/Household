@@ -1,0 +1,77 @@
+/* iOS Safe Areas */
+:root {
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-right: env(safe-area-inset-right, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-inset-left: env(safe-area-inset-left, 0px);
+}
+
+/* Theme-spezifische CSS-Klassen */
+body.light-theme {
+  --primary: #605CFF;
+  --primary-rgb: 96, 92, 255;
+  --primary-hover: #4A47D5;
+  --secondary: #FF6E6A;
+  --background: #F5F7FA;
+  --background-gradient: linear-gradient(120deg, #F5F7FA, #E4E8F0);
+  --card-background: rgba(255, 255, 255, 0.8);
+  --text: #2C3E50;
+  --text-secondary: #7F8C8D;
+  --border-color: rgba(180, 180, 180, 0.6);
+  --success: #00E096;
+  --warning: #FFB156;
+  --error: #FF647C;
+  --button-radius: 12px;
+  --card-radius: 20px;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  --glass-blur: blur(20px);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.18);
+  background: var(--background-gradient);
+  color: var(--text);
+}
+
+body.dark-theme {
+  --primary: #8E80FF;
+  --primary-rgb: 142, 128, 255;
+  --primary-hover: #7C6FE8;
+  --secondary: #FF8480;
+  --background: #111827;
+  --background-gradient: linear-gradient(120deg, #232526, #1F2937);
+  --card-background: rgba(31, 41, 55, 0.7);
+  --text: #E5E7EB;
+  --text-secondary: #9CA3AF;
+  --border-color: rgba(75, 85, 99, 0.3);
+  --success: #10B981;
+  --warning: #F59E0B;
+  --error: #EF4444;
+  --button-radius: 12px;
+  --card-radius: 20px;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  --glass-blur: blur(20px);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--background-gradient);
+  color: var(--text);
+}
+
+body.cute-theme {
+  --primary: #FF6AC1;
+  --primary-rgb: 255, 106, 193;
+  --primary-hover: #EC4BAE;
+  --secondary: #85D3FF;
+  --background: #FFF6FA;
+  --background-gradient: linear-gradient(120deg, #FFF6FA, #FFE6F4);
+  --card-background: rgba(255, 255, 255, 0.9);
+  --text: #6A4670;
+  --text-secondary: #A78BAB;
+  --border-color: rgba(235, 175, 225, 0.75);
+  --success: #9AE78B;
+  --warning: #FFD26A;
+  --error: #FF8FAD;
+  --button-radius: 20px;
+  --card-radius: 24px;
+  --shadow: 0 10px 30px rgba(211, 162, 232, 0.2);
+  --glass-blur: blur(20px);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.4);
+  background: var(--background-gradient);
+  color: var(--text);
+}

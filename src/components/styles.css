@@ -1,0 +1,654 @@
+/* Stile für die neuen Komponenten */
+
+/* Gemeinsame Stile */
+.centered-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  color: var(--text-secondary);
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: var(--card-radius);
+}
+
+/* Putzplan-Stile */
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background-color: var(--card-background);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  transition: all 0.2s;
+}
+
+.task-item.done {
+  opacity: 0.6;
+}
+
+.task-checkbox {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.task-content {
+  flex-grow: 1;
+  cursor: pointer;
+}
+
+.task-title {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.task-details {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.task-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.task-delete, .task-edit {
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  opacity: 0.5;
+  transition: all 0.2s;
+}
+
+.task-edit:hover {
+  opacity: 1;
+  color: var(--primary-color);
+  background-color: var(--background-secondary);
+}
+
+.task-delete:hover {
+  opacity: 1;
+  color: var(--error-color);
+  background-color: var(--background-secondary);
+}
+
+/* Kalender-Stile */
+.view-selector {
+  display: flex;
+  align-items: center;
+}
+
+.calendar-view {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.calendar-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.weekday {
+  text-align: center;
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  padding: 5px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.calendar-day {
+  aspect-ratio: 1/1;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-width: 0; /* Verhindert Overflow */
+  max-width: 100%;
+}
+
+.calendar-day.empty {
+  background-color: transparent;
+  border-color: transparent;
+}
+
+.calendar-day.has-tasks {
+  background-color: rgba(var(--primary-color-rgb), 0.05);
+  border-color: rgba(var(--primary-color-rgb), 0.2);
+}
+
+.day-number {
+  font-size: 0.8rem;
+  text-align: center;
+  margin-bottom: 2px;
+}
+
+.day-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.65rem;
+  overflow: hidden;
+  max-height: calc(100% - 20px);
+}
+
+.day-task {
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  padding: 1px 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.day-task:hover {
+  filter: brightness(0.95);
+}
+
+.day-task.done {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.task-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  margin-right: 3px;
+  flex-shrink: 0;
+}
+
+.task-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.button.small {
+  padding: 4px 8px;
+  height: auto;
+  font-size: 0.9rem;
+}
+
+/* Filter-Optionen */
+.filter-bar {
+  background-color: var(--card-background);
+  padding: 8px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.filter-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.filter-button:hover {
+  background-color: var(--background-secondary);
+}
+
+.filter-button.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Erweiterte Task-Styles */
+.task-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3px;
+}
+
+.task-notes {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 6px;
+  padding: 4px 0;
+  border-top: 1px dashed var(--border-color);
+}
+
+.task-takeover {
+  background: none;
+  border: 1px solid var(--primary-color);
+  color: var(--primary-color);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.task-takeover:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.task-history-details {
+  margin-top: 8px;
+  font-size: 0.85rem;
+}
+
+.task-history-details summary {
+  cursor: pointer;
+  color: var(--text-secondary);
+  user-select: none;
+}
+
+.task-history {
+  padding: 5px 0 0 10px;
+  margin-top: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.task-history-entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.task-history-date {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.task-history-user {
+  font-weight: 500;
+}
+
+.task-history-empty {
+  color: var(--text-secondary);
+  font-style: italic;
+  padding: 5px 0 0 10px;
+}
+
+.task-archive {
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  opacity: 0.5;
+  transition: all 0.2s;
+}
+
+.task-archive:hover {
+  opacity: 1;
+  color: var(--primary-color);
+  background-color: var(--background-secondary);
+}
+
+.task-item.done .task-title {
+  text-decoration: line-through;
+}
+
+/* Einkaufslisten-Stile */
+.shopping-items {
+  display: flex;
+  flex-direction: column;
+}
+
+.shopping-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.shopping-item:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.shopping-item.completed {
+  opacity: 0.6;
+}
+
+.item-checkbox {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.item-content {
+  flex: 1;
+  cursor: pointer;
+}
+
+.item-name {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.item-quantity {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.item-delete {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  opacity: 0.5;
+  padding: 5px;
+  border-radius: 50%;
+}
+
+.item-delete:hover {
+  opacity: 1;
+  color: var(--error);
+  background-color: rgba(255, 100, 124, 0.1);
+}
+
+.shopping-item.completed .item-name {
+  text-decoration: line-through;
+}
+
+/* Finanzen-Stile */
+.balances-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.balance-card {
+  padding: 15px;
+  border-radius: var(--card-radius);
+  background-color: rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.balance-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5px;
+  height: 100%;
+}
+
+.balance-card.positive::before {
+  background-color: var(--success);
+}
+
+.balance-card.negative::before {
+  background-color: var(--error);
+}
+
+.balance-name {
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.balance-amount {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.balance-card.positive .balance-amount {
+  color: var(--success);
+}
+
+.balance-card.negative .balance-amount {
+  color: var(--error);
+}
+
+.balance-status {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.participants-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.transactions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.transaction-item {
+  display: flex;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: var(--card-radius);
+  padding: 15px;
+  transition: all 0.2s ease;
+}
+
+.transaction-item:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.transaction-info {
+  flex: 1;
+}
+
+.transaction-primary {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.transaction-description {
+  font-weight: 500;
+}
+
+.transaction-amount {
+  font-weight: 600;
+}
+
+.transaction-secondary {
+  display: flex;
+  gap: 15px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 3px;
+}
+
+.transaction-participants {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.transaction-delete {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  opacity: 0.5;
+  padding: 5px;
+  border-radius: 50%;
+  align-self: center;
+}
+
+.transaction-delete:hover {
+  opacity: 1;
+  color: var(--error);
+  background-color: rgba(255, 100, 124, 0.1);
+}
+
+/* Mitbewohner-Stile */
+.invite-section {
+  border: 2px dashed rgba(var(--primary-rgb), 0.3);
+}
+
+.roommates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.roommate-card {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: var(--card-radius);
+  transition: all 0.2s ease;
+}
+
+.roommate-card:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.roommate-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgba(var(--primary-rgb), 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 15px;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.roommate-info {
+  flex: 1;
+}
+
+.roommate-name {
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.owner-badge {
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  background-color: rgba(var(--primary-rgb), 0.1);
+  color: var(--primary);
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.roommate-email {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 768px) {
+  .balances-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .transaction-primary {
+    flex-direction: column;
+    margin-bottom: 8px;
+  }
+  
+  .transaction-secondary {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .participants-checkboxes {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
