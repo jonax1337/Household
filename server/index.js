@@ -48,8 +48,8 @@ const corsOptions = {
       /^https?:\/\/192\.168\./,  // 192.168.x.x
       /^https?:\/\/10\./,        // 10.x.x.x
       /^https?:\/\/172\.16\./,  // 172.16.x.x
-      // Render.com Frontend URL (ersetze diese durch deine echte URL, wenn du sie hast)
-      'https://household-frontend.onrender.com',
+      // Render.com Frontend URL
+      'https://household.onrender.com',
       // Falls du eine eigene Domain hast, füge sie hier hinzu
       // 'https://deine-domain.de'
     ];
