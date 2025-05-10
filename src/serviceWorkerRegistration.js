@@ -18,8 +18,11 @@ export function registerServiceWorker() {
         return;
       }
 
-      // Verwende einen stabilen Service Worker ohne Cachebuster im Entwicklungsmodus
-      const swUrl = `/serviceWorker.js`;
+      // Pfad zum Service Worker bestimmen - absolute URL verwenden
+      // window.location.origin stellt sicher, dass wir die volle URL haben
+      const swUrl = `${window.location.origin}/serviceWorker.js`;
+      console.log('Service Worker URL:', swUrl);
+      
       const swOptions = {
         scope: '/'
       };
