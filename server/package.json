@@ -17,7 +17,10 @@
     "mysql2": "^3.14.1",
     "socket.io": "^4.8.1",
     "uuid": "^11.1.0",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "web-push": "^3.6.7",
+    "node-cron": "^3.0.3",
+    "crypto-js": "^4.2.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"
