@@ -25,10 +25,15 @@ const getBaseUrl = () => {
   return `${protocol}//${hostname}`;
 };
 
+// Basisurl abrufen
 const BASE_URL = getBaseUrl();
-const API_URL = BASE_URL.endsWith('/api') ? BASE_URL : BASE_URL + '/api';
+
+// API-URL konfigurieren: Wenn REACT_APP_API_URL definiert ist, verwenden wir diese direkt ohne /api anzufu00fcgen
+// sonst addieren wir /api zum Basispfad (lokale Entwicklung)
+const API_URL = process.env.REACT_APP_API_URL ? BASE_URL : (BASE_URL + '/api');
 
 console.log('%c[API] Verwende API-URL:', 'color: #0066cc;', API_URL);
+console.log('REACT_APP_API_URL definiert?', process.env.REACT_APP_API_URL ? 'Ja' : 'Nein');
 
 // Flag, um Mock-Daten zu aktivieren, wenn Backend nicht erreichbar ist
 let useMockData = false;  // Standardmäßig echte API-Aufrufe verwenden
