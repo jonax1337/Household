@@ -4,23 +4,18 @@ const mysql = require('mysql2/promise');
 // Datenbankverbindungskonfiguration
 let pool;
 
-// Wenn die DATABASE_URL-Umgebungsvariable existiert (Render.com stellt diese bereit),
-// nutze sie für die Verbindung, ansonsten verwende die lokalen Einstellungen
-if (process.env.DATABASE_URL) {
-  console.log('Verwende externe Datenbankverbindung...');
-  pool = mysql.createPool(process.env.DATABASE_URL);
-} else {
-  console.log('Verwende lokale Datenbankverbindung...');
-  pool = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'household_db',
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-  });
-}
+// Datenbankverbindung konfigurieren
+// Wird in allen Umgebungen (lokal, Dev, Prod) verwendet
+console.log('Verbinde mit Datenbank auf:', process.env.DB_HOST);
+pool = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+});
 
 // Initialize database and create tables if they don't exist
 async function initializeDatabase() {

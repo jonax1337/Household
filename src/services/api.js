@@ -3,6 +3,13 @@ import axios from 'axios';
 // API-Basis-URL - verwende dynamische Werte basierend auf der aktuellen Umgebung
 // Automatische Anpassung an das aktuelle Protokoll (http/https) und Host
 const getBaseUrl = () => {
+  // Zuerst prüfen, ob eine spezifische API-URL in den Umgebungsvariablen definiert ist
+  // Dies wird für Render.com verwendet, wo Frontend und Backend separate Services sind
+  if (process.env.REACT_APP_API_URL) {
+    console.log('%c[API] Verwende konfigurierte API-URL aus Umgebungsvariablen', 'color: #0066cc;');
+    return process.env.REACT_APP_API_URL;
+  }
+  
   // Verwende das gleiche Protokoll wie die Seite selbst (http oder https)
   const protocol = window.location.protocol;
   const hostname = window.location.hostname;
@@ -19,7 +26,7 @@ const getBaseUrl = () => {
 };
 
 const BASE_URL = getBaseUrl();
-const API_URL = BASE_URL + '/api';
+const API_URL = BASE_URL.endsWith('/api') ? BASE_URL : BASE_URL + '/api';
 
 console.log('%c[API] Verwende API-URL:', 'color: #0066cc;', API_URL);
 

@@ -29,9 +29,9 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 5000;
 
-// Erweiterte CORS-Konfiguration für lokales Netzwerk und Entwicklung
+// Erweiterte CORS-Konfiguration für lokales Netzwerk und Produktion
 const corsOptions = {
-  // Erlaube explizit alle Origins im lokalen Netzwerk
+  // Erlaube explizit definierte Origins
   origin: function (origin, callback) {
     // Netzwerk-Debug-Info ausgeben
     console.log('CORS Origin:', origin);
@@ -39,22 +39,44 @@ const corsOptions = {
     // Null origin bedeutet same-origin Anfrage (z.B. vom Browser direkt)
     if (!origin) return callback(null, true);
     
-    // Lokale Entwicklung: Erlaube alle localhost und lokale IP-Adressen
-    if (
-      origin.startsWith('http://localhost') || 
-      origin.startsWith('https://localhost') ||
-      origin.match(/^https?:\/\/192\.168\./) || // 192.168.x.x
-      origin.match(/^https?:\/\/10\./) ||       // 10.x.x.x
-      origin.match(/^https?:\/\/172\.16\./)    // 172.16.x.x
-    ) {
+    // Allowed Origins konfigurieren
+    const allowedOrigins = [
+      // Lokale Entwicklung
+      'http://localhost:3000',
+      'https://localhost:3000',
+      // Lokale Netzwerk-IPs für Entwicklung
+      /^https?:\/\/192\.168\./,  // 192.168.x.x
+      /^https?:\/\/10\./,        // 10.x.x.x
+      /^https?:\/\/172\.16\./,  // 172.16.x.x
+      // Render.com Frontend URL (ersetze diese durch deine echte URL, wenn du sie hast)
+      'https://household-frontend.onrender.com',
+      // Falls du eine eigene Domain hast, füge sie hier hinzu
+      // 'https://deine-domain.de'
+    ];
+    
+    // Prüfe, ob die anfragende Origin in der Liste der erlaubten Origins ist
+    const isAllowed = allowedOrigins.some(allowedOrigin => {
+      if (typeof allowedOrigin === 'string') {
+        return origin === allowedOrigin;
+      } else if (allowedOrigin instanceof RegExp) {
+        return allowedOrigin.test(origin);
+      }
+      return false;
+    });
+    
+    if (isAllowed) {
       return callback(null, true);
     }
     
-    // Im Produktivbetrieb hier die entsprechende Domain einschränken
-    // Beispiel: if (origin === 'https://mydomain.com') return callback(null, true);
-    
-    // Für Entwicklungszwecke: Erlaube ALLE Origins
-    return callback(null, true);
+    // Im Production-Mode können wir alle Origins erlauben für einfacheres Testing
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Warnung: Nicht-gelistete Origin im Dev-Mode zugelassen:', origin);
+      return callback(null, true);
+    } else {
+      // In Produktion: Strikter mit CORS sein
+      console.warn('CORS-Fehler: Unerlaubte Origin:', origin);
+      return callback(new Error('Nicht erlaubte Origin'), false);
+    }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'x-auth-token', 'Authorization'],

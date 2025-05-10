@@ -1,1 +1,46 @@
-node_modules
+# Dependency directories
+node_modules/
+
+# Build outputs
+/build
+/dist
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+# .env.production wird fu00fcr Render benu00f6tigt!
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE and editor folders
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temp files
+.tmp
+.temp
+
+# Database backups & test data
+*.sql
+*.sqlite
+
+# Coverage directory used by tools like istanbul
+coverage
