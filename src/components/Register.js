@@ -147,7 +147,7 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
           <h1 style={{ marginBottom: '20px', textAlign: 'center', fontSize: '1.8rem' }}>Registrieren</h1>
           
           <form onSubmit={handleRegister}>
-            <div className="mb-3">
+            <div className="mb-3" style={{ marginBottom: '0' }}>
               <label htmlFor="name" style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontSize: '14px' }}>
                 <FiUser style={{ marginRight: '8px' }} />
                 Name
@@ -164,7 +164,7 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
               />
             </div>
             
-            <div className="mb-3">
+            <div className="mb-3" style={{ marginBottom: '0' }}>
               <label htmlFor="registerEmail" style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontSize: '14px' }}>
                 <FiMail style={{ marginRight: '8px' }} />
                 E-Mail
@@ -181,7 +181,7 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
               />
             </div>
             
-            <div className="mb-3">
+            <div className="mb-3" style={{ marginBottom: '0' }}>
               <label htmlFor="registerPassword" style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontSize: '14px' }}>
                 <FiLock style={{ marginRight: '8px' }} />
                 Passwort
@@ -316,7 +316,7 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
               )}
             </div>
             
-            <div className="mb-3">
+            <div className="mb-3" style={{ marginBottom: '0' }}>
               <label htmlFor="confirmPassword" style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontSize: '14px' }}>
                 <FiLock style={{ marginRight: '8px' }} />
                 Passwort bestätigen
@@ -375,6 +375,7 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
             <button 
               type="submit" 
               className="button primary full-width"
+              style={{ width: '100%', marginTop: '20px' }}
               disabled={loading || (formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword)}
             >
               {loading ? 'Registrieren...' : 'Registrieren'}
@@ -385,13 +386,12 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
               Bereits registriert? 
             </p>
-            <button 
+            <p 
               onClick={onSwitchToLogin}
-              className="button button-secondary" 
-              style={{ marginTop: '10px', width: '100%' }}
+              style={{ textDecoration: 'underline', marginTop: '10px', width: '100%', fontSize: '14px', color: 'var(--text-secondary)' }}
             >
               Anmelden
-            </button>
+            </p>
           </div>
         </div>
       </div>

@@ -330,7 +330,6 @@ const Dashboard = ({
                 <div className="card" style={{ marginBottom: '20px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
                     <h3><FiAward style={{ marginRight: '8px', verticalAlign: 'middle', color: 'var(--primary)' }} /> Rangliste</h3>
-                    <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Alle anzeigen</span>
                   </div>
                   
                   <div className="ranking-list">
@@ -383,7 +382,7 @@ const Dashboard = ({
                 <div className="card">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
                     <h3><FiClock style={{ marginRight: '8px', verticalAlign: 'middle', color: 'var(--primary)' }} /> Bevorstehende Aufgaben</h3>
-                    <Link to="/cleaning-schedule" style={{ color: 'var(--text-secondary)', fontSize: '14px', textDecoration: 'none' }}>Alle anzeigen</Link>
+                    <Link to="/cleaning" style={{ color: 'var(--text-secondary)', fontSize: '14px', textDecoration: 'none' }}>Alle anzeigen</Link>
                   </div>
                   
                   <div className="upcoming-tasks">
@@ -481,88 +480,6 @@ const Dashboard = ({
               
               {/* Rechte Spalte - Pinnwand und Aktivitäten-Feed */}
               <div className="dashboard-column">
-                {/* Pinnwand (für späteren Chat) */}
-                <div className="card" style={{ marginBottom: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                    <h3><FiMessageCircle style={{ marginRight: '8px', verticalAlign: 'middle', color: 'var(--primary)' }} /> Pinnwand</h3>
-                    <button className="icon-button" title="Neue Nachricht">
-                      <FiPlusCircle size={18} />
-                    </button>
-                  </div>
-                  
-                  <div className="pinboard" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                    {/* Beispiel-Nachrichten - in der echten App würde dies aus einer API kommen */}
-                    <div className="pinboard-message" style={{ 
-                      backgroundColor: 'var(--bg-secondary)',
-                      borderRadius: '12px',
-                      padding: '15px',
-                      marginBottom: '15px'
-                    }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                        <div>
-                          <span style={{ fontWeight: 'bold' }}>Max</span>
-                          <span style={{ fontSize: '12px', color: 'var(--text-secondary)', marginLeft: '8px' }}>Heute, 14:30</span>
-                        </div>
-                        <div>
-                          <button className="icon-button" style={{ marginLeft: '5px', padding: '2px' }} title="Bearbeiten">
-                            <FiEdit size={14} />
-                          </button>
-                        </div>
-                      </div>
-                      <p>Hab die Einkäufe für die Woche erledigt. Quittung ist in der Küchenschublade.</p>
-                      <div style={{ display: 'flex', gap: '5px', marginTop: '10px' }}>
-                        <span style={{ 
-                          fontSize: '12px', 
-                          backgroundColor: 'var(--primary)', 
-                          color: 'white', 
-                          borderRadius: '12px', 
-                          padding: '3px 8px',
-                          opacity: 0.8
-                        }}>
-                          <FiShoppingCart size={10} style={{ marginRight: '4px' }} /> Einkauf
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div className="pinboard-message" style={{ 
-                      backgroundColor: 'var(--bg-secondary)',
-                      borderRadius: '12px',
-                      padding: '15px',
-                      marginBottom: '15px'
-                    }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                        <div>
-                          <span style={{ fontWeight: 'bold' }}>Lisa</span>
-                          <span style={{ fontSize: '12px', color: 'var(--text-secondary)', marginLeft: '8px' }}>Gestern, 20:15</span>
-                        </div>
-                      </div>
-                      <p>Am Samstag machen wir eine kleine WG-Feier. Denkt daran, eure Gäste vorher anzumelden!</p>
-                      <div style={{ display: 'flex', gap: '5px', marginTop: '10px' }}>
-                        <span style={{ 
-                          fontSize: '12px', 
-                          backgroundColor: '#FF9554', 
-                          color: 'white', 
-                          borderRadius: '12px', 
-                          padding: '3px 8px',
-                          opacity: 0.8
-                        }}>
-                          <FiCalendar size={10} style={{ marginRight: '4px' }} /> Event
-                        </span>
-                      </div>
-                    </div>
-                    
-                    {/* Keine Nachrichten fallback */}
-                    {[1, 2].length === 0 && (
-                      <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-secondary)' }}>
-                        <p>Noch keine Nachrichten.</p>
-                        <button className="button primary" style={{ marginTop: '15px' }}>
-                          <FiPlusCircle size={16} style={{ marginRight: '8px' }} /> Erste Nachricht erstellen
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
                 {/* Aktivitäten-Feed */}
                 <div className="card">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>

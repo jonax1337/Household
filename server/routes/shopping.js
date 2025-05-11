@@ -171,20 +171,59 @@ router.post('/apartment/:apartmentId/list', verifyToken, async (req, res) => {
     }
     
     // Liste erstellen
+    // Sicherstellen, dass das Datum valide ist oder null verwenden
+    let safeDate;
+    try {
+      // Wenn date ein String ist, versuchen wir es zu parsen
+      if (date && typeof date === 'string') {
+        safeDate = new Date(date);
+        // Überprüfen ob das Datum gültig ist
+        if (isNaN(safeDate.getTime())) {
+          safeDate = new Date(); // Fallback auf aktuelles Datum
+          console.log('Ungültiges Datum wurde korrigiert:', date);
+        }
+      } else if (date instanceof Date) {
+        safeDate = date;
+      } else {
+        safeDate = new Date();
+      }
+    } catch (dateError) {
+      console.error('Fehler beim Datums-Parsing:', dateError);
+      safeDate = new Date(); // Fallback auf aktuelles Datum
+    }
+    
+    // Als MySQL-Datum-String formatieren (YYYY-MM-DD)
+    const formattedDate = safeDate.toISOString().split('T')[0];
+    
+    console.log('Erstelle Einkaufsliste mit Datum:', formattedDate);
+    
     const [result] = await connection.query(
       'INSERT INTO shopping_lists (name, date, apartment_id) VALUES (?, ?, ?)',
-      [name, date || new Date(), apartmentId]
+      [name || 'Neue Einkaufsliste', formattedDate, apartmentId]
     );
     
     const listId = result.insertId;
     
     // Artikel hinzufügen, falls vorhanden
-    if (items && items.length > 0) {
+    if (items && Array.isArray(items) && items.length > 0) {
       for (const item of items) {
-        await connection.query(
-          'INSERT INTO shopping_items (name, quantity, category, checked, list_id) VALUES (?, ?, ?, ?, ?)',
-          [item.name, item.quantity || '', item.category || 'sonstiges', item.checked || false, listId]
-        );
+        try {
+          // Sicherstellen, dass keine null-Werte übergeben werden
+          const itemName = item.name || 'Neuer Artikel';
+          const itemQuantity = (item.quantity !== undefined && item.quantity !== null) ? String(item.quantity) : '';
+          const itemCategory = item.category || 'sonstiges';
+          const itemChecked = item.checked === true ? 1 : 0; // Explizit auf 0/1 für MySQL umwandeln
+
+          console.log('Füge Artikel hinzu:', { name: itemName, quantity: itemQuantity, category: itemCategory, checked: itemChecked });
+          
+          await connection.query(
+            'INSERT INTO shopping_items (name, quantity, category, checked, list_id) VALUES (?, ?, ?, ?, ?)',
+            [itemName, itemQuantity, itemCategory, itemChecked, listId]
+          );
+        } catch (itemError) {
+          console.error('Fehler beim Hinzufügen eines Artikels:', itemError, 'Element:', item);
+          // Wir werfen den Fehler nicht, um trotzdem die anderen Artikel hinzufügen zu können
+        }
       }
     }
     

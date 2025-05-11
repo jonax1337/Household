@@ -100,7 +100,7 @@ const Login = ({ onLoginSuccess, onSwitchToRegister }) => {
           <h1 style={{ marginBottom: '20px', textAlign: 'center', fontSize: '1.8rem' }}>Anmelden</h1>
           
           <form onSubmit={handleLogin}>
-            <div className="mb-3">
+            <div className="mb-3" style={{ marginBottom: '0' }}>
               <label htmlFor="email" style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontSize: '14px' }}>
                 <FiMail style={{ marginRight: '8px' }} />
                 E-Mail
@@ -117,7 +117,7 @@ const Login = ({ onLoginSuccess, onSwitchToRegister }) => {
               />
             </div>
             
-            <div className="mb-3">
+            <div className="mb-3" style={{ marginBottom: '0' }}>
               <label htmlFor="password" style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontSize: '14px' }}>
                 <FiLock style={{ marginRight: '8px' }} />
                 Passwort
@@ -172,15 +172,15 @@ const Login = ({ onLoginSuccess, onSwitchToRegister }) => {
               type="submit" 
               className="button primary full-width"
               disabled={loading}
+              style={{ width: '100%', marginTop: '20px' }}
             >
               {loading ? 'Anmeldung läuft...' : 'Anmelden'}
             </button>
 
-            {/* Soziale Login-Buttons */}
-            <div style={{ marginTop: '30px', position: 'relative' }}>
-              <div style={{ 
+            {/* Seperator */}
+            <div style={{ 
                 textAlign: 'center', 
-                marginBottom: '20px',
+                marginTop: '20px',
                 position: 'relative',
                 display: 'flex',
                 alignItems: 'center',
@@ -193,6 +193,18 @@ const Login = ({ onLoginSuccess, onSwitchToRegister }) => {
                   borderBottom: '1px solid var(--border-color)',
                   margin: 0
                 }} />
+              </div>
+
+            {/* Soziale Login-Buttons */}
+            <div style={{ marginTop: '20px', position: 'relative' }}>
+              <div style={{ 
+                textAlign: 'center',
+                marginBottom: '15px',
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
                 <span style={{ 
                   background: 'var(--card-bg)', 
                   padding: '0 15px', 
@@ -316,15 +328,32 @@ const Login = ({ onLoginSuccess, onSwitchToRegister }) => {
             </div>
           </form>
 
+          {/* Seperator */}
+          <div style={{ 
+                textAlign: 'center', 
+                marginTop: '20px',
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <hr style={{ 
+                  position: 'absolute', 
+                  width: '100%', 
+                  border: 'none', 
+                  borderBottom: '1px solid var(--border-color)',
+                  margin: 0
+                }} />
+              </div>
+
           <div style={{ marginTop: '20px', textAlign: 'center' }}>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Noch kein Konto?</p>
-            <button 
+            <p 
               onClick={onSwitchToRegister} 
-              className="button button-secondary" 
-              style={{ marginTop: '10px', width: '100%' }}
+              style={{ textDecoration: 'underline', marginTop: '10px', width: '100%', fontSize: '14px', color: 'var(--text-secondary)' }}
             >
               Registrieren
-            </button>
+            </p>
           </div>
         </div>
       </div>
