@@ -591,7 +591,7 @@ const ShoppingList = ({ selectedApartment }) => {
                   }}
                   title="Zurück zur Übersicht"
                 >
-                  <FiArrowLeft size={16} /> Zurück
+                  <FiArrowLeft size={24} />
                 </button>
                 
                 {isEditingListName ? (

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { FiSun, FiBell, FiCheckCircle, FiMoon, FiRefreshCw, FiHome, FiLogOut, FiEdit, FiTrash2, FiX, FiShare2, FiCopy, FiHeart, FiUser, FiSettings as FiGear, FiUsers, FiAward, FiUserX } from 'react-icons/fi';
+import AddressPicker from './AddressPicker';
 import { useTheme } from '../context/ThemeContext';
 import { authService, apartmentService, roommateService } from '../services/api';
 import NotificationPrompt from './NotificationPrompt';
@@ -518,21 +519,33 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
                 style={{ width: '100%', marginBottom: '20px' }}
               />
               
-              <label htmlFor="apartmentAddress">Adresse</label>
-              <input
-                id="apartmentAddress"
-                type="text"
-                className="input"
+              <AddressPicker
+                label="Adresse"
                 placeholder="z.B. Musterstraße 123, 12345 Berlin"
                 value={apartmentFormData.address}
-                onChange={(e) => setApartmentFormData({...apartmentFormData, address: e.target.value})}
-                style={{ width: '100%', marginBottom: '20px' }}
+                onChange={(address, suggestion) => {
+                  // Setze die formatierte Adresse und speichere die vollständigen Details, falls vorhanden
+                  const newFormData = {
+                    ...apartmentFormData,
+                    address,
+                    // Speichere die Geocoding-Daten, falls sie später benötigt werden
+                    location: suggestion ? {
+                      lat: suggestion.lat,
+                      lon: suggestion.lon,
+                      details: suggestion
+                    } : undefined
+                  };
+                  setApartmentFormData(newFormData);
+                }}
+                required
+                style={{ marginBottom: '20px' }}
               />
               
               <button 
                 className="button primary"
                 onClick={handleEditApartment}
-                style={{ width: '100%' }}
+                disabled={!apartmentFormData.name.trim() || !apartmentFormData.address.trim()}
+                style={{ width: '100%', opacity: (!apartmentFormData.name.trim() || !apartmentFormData.address.trim()) ? '0.7' : '1' }}
               >
                 Speichern
               </button>

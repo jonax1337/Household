@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { FiHome, FiMapPin, FiPlus, FiLoader } from 'react-icons/fi';
+import { FiHome, FiMapPin, FiPlus, FiLoader, FiX } from 'react-icons/fi';
+import AddressPicker from './AddressPicker';
 
 const CreateApartment = ({ isOpen, onClose, onCreateApartment }) => {
   const [apartmentData, setApartmentData] = useState({ name: '', address: '' });
@@ -69,86 +70,82 @@ const CreateApartment = ({ isOpen, onClose, onCreateApartment }) => {
   };
 
   return createPortal(
-    <div className="fullscreen-menu">
-      <div className="menu-content">
-        <div className="card zoomIn" style={{ padding: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h2>Neue Wohnung erstellen</h2>
-            <button 
-              className="button ghost" 
-              onClick={onClose}
-              disabled={isLoading}
-            >
-              Abbrechen
-            </button>
+    <div className="fullscreen-menu fadeIn">
+      <div className="fullscreen-menu-content">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h2>Neue Wohnung erstellen</h2>
+          <button 
+            className="icon-button" 
+            onClick={onClose}
+            disabled={isLoading}
+          >
+            <FiX size={20} />
+          </button>
+        </div>
+        
+        {error && (
+          <div style={{ color: 'var(--danger-color)', marginBottom: '15px', padding: '10px', backgroundColor: 'rgba(var(--danger-rgb), 0.1)', borderRadius: 'var(--border-radius)' }}>
+            {error}
           </div>
+        )}
+        
+        <div className="form-group">
+          <label htmlFor="apartmentName">
+            <FiHome style={{ marginRight: '5px' }} />
+            Name der Wohnung
+          </label>
+          <input 
+            id="apartmentName"
+            type="text" 
+            className="input"
+            placeholder="z.B. Meine WG" 
+            value={apartmentData.name}
+            onChange={(e) => setApartmentData({...apartmentData, name: e.target.value})}
+            disabled={isLoading}
+            style={{ width: '100%', marginBottom: '20px' }}
+            autoFocus
+          />
           
-          {error && 
-            <div style={{ color: 'var(--danger-color)', marginBottom: '15px', padding: '10px', backgroundColor: 'rgba(var(--danger-rgb), 0.1)', borderRadius: 'var(--border-radius)' }}>
-              {error}
-            </div>
-          }
+          <label>Adresse</label>
+          <AddressPicker
+            placeholder="z.B. Musterstraße 123, 12345 Berlin" 
+            value={apartmentData.address}
+            onChange={(address, suggestion) => {
+              // Setze die formatierte Adresse und speichere die vollständigen Details
+              const newData = {
+                ...apartmentData,
+                address,
+                location: suggestion ? {
+                  lat: suggestion.lat,
+                  lon: suggestion.lon,
+                  details: suggestion
+                } : undefined
+              };
+              setApartmentData(newData);
+            }}
+            disabled={isLoading}
+            required
+            style={{ marginBottom: '25px' }}
+          />
           
-          <div style={{ marginBottom: '25px' }}>
-            <div className="mb-3">
-              <label htmlFor="apartmentName" style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontSize: '14px' }}>
-                <FiHome style={{ marginRight: '8px' }} />
-                Name der Wohnung
-              </label>
-              <input 
-                id="apartmentName"
-                type="text" 
-                className="input"
-                placeholder="z.B. Meine WG" 
-                value={apartmentData.name}
-                onChange={(e) => setApartmentData({...apartmentData, name: e.target.value})}
-                disabled={isLoading}
-              />
-            </div>
-            
-            <div className="mb-3">
-              <label htmlFor="apartmentAddress" style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontSize: '14px' }}>
-                <FiMapPin style={{ marginRight: '8px' }} />
-                Adresse
-              </label>
-              <input 
-                id="apartmentAddress"
-                type="text" 
-                className="input"
-                placeholder="z.B. Musterstraße 123, 12345 Berlin" 
-                value={apartmentData.address}
-                onChange={(e) => setApartmentData({...apartmentData, address: e.target.value})}
-                disabled={isLoading}
-              />
-            </div>
-          </div>
-          
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-            <button 
-              className="button ghost" 
-              onClick={onClose}
-              disabled={isLoading}
-            >
-              Abbrechen
-            </button>
-            <button 
-              className="button primary" 
-              disabled={!apartmentData.name || !apartmentData.address || isLoading}
-              onClick={handleSubmit}
-            >
-              {isLoading ? (
-                <>
-                  <FiLoader size={18} style={{ marginRight: '8px', animation: 'spin 1s linear infinite' }} />
-                  Wird erstellt...
-                </>
-              ) : (
-                <>
-                  <FiPlus size={18} style={{ marginRight: '8px' }} />
-                  Erstellen
-                </>
-              )}
-            </button>
-          </div>
+          <button 
+            className="button primary" 
+            disabled={!apartmentData.name.trim() || !apartmentData.address.trim() || isLoading}
+            onClick={handleSubmit}
+            style={{ width: '100%', opacity: (!apartmentData.name.trim() || !apartmentData.address.trim() || isLoading) ? '0.7' : '1' }}
+          >
+            {isLoading ? (
+              <>
+                <FiLoader size={18} style={{ marginRight: '8px', animation: 'spin 1s linear infinite' }} />
+                Wird erstellt...
+              </>
+            ) : (
+              <>
+                <FiPlus size={18} style={{ marginRight: '8px' }} />
+                Erstellen
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>,
