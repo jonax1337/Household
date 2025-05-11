@@ -41,8 +41,7 @@ const notificationIntegration = {
             data: {
               userId: userId,
               listName: listName,
-              senderName: senderName, // Den Namen explizit auch hier speichern
-              timestamp: new Date().toISOString()
+              senderName: senderName
             }
           },
           userId // Den Ersteller ausschließen
@@ -82,8 +81,7 @@ const notificationIntegration = {
               userId: userId,
               itemName: itemName,
               listName: listName,
-              senderName: senderName,
-              timestamp: new Date().toISOString()
+              senderName: senderName
             }
           },
           userId // Wichtig: Den Absender explizit ausschließen!
@@ -113,8 +111,7 @@ const notificationIntegration = {
               userId: userId,
               itemName: itemName,
               listName: listName,
-              senderName: senderName, // Namen explizit speichern
-              timestamp: new Date().toISOString()
+              senderName: senderName
             }
           },
           userId // Wichtig: Den Absender explizit ausschließen!
@@ -141,8 +138,7 @@ const notificationIntegration = {
             data: {
               userId: userId,
               listName: listName,
-              senderName: senderName, // Namen explizit speichern
-              timestamp: new Date().toISOString()
+              senderName: senderName
             },
             useEmoji: true
           },
@@ -198,8 +194,7 @@ const notificationIntegration = {
               taskTitle: taskTitle,
               dueDate: dueDate,
               points: points,
-              senderName: senderName, // Den Namen explizit speichern
-              timestamp: new Date().toISOString()
+              senderName: senderName
             }
           },
           userId // Wichtig: Den Absender explizit ausschließen!
@@ -212,7 +207,7 @@ const notificationIntegration = {
     // Aufgabe erledigt - konsistentes Format mit erweiterten Details
     onTaskCompleted: async (taskData, apartmentId, userId, userName = null) => {
       try {
-        // Daten aus dem u00fcbergebenen Objekt extrahieren
+        // Daten aus dem übergebenen Objekt extrahieren
         const taskTitle = taskData.title || 'Eine Aufgabe';
         const pointsAwarded = taskData.points_awarded || 0;
         const taskColor = taskData.color || '#4a90e2';
@@ -263,12 +258,11 @@ const notificationIntegration = {
               url: '/cleaning',
               taskId: instanceId,
               type: 'task_completed',
-              userName: senderName, // Aktualisiert auf senderName
-              senderName: senderName, // Explizit den Namen speichern
+              userName: senderName,
+              senderName: senderName,
               taskTitle: taskTitle,
               pointsAwarded: pointsAwarded,
-              taskColor: taskColor,
-              timestamp: new Date().toISOString()
+              taskColor: taskColor
             },
             // Vibrationspattern je nach Punktzahl
             vibrate: pointsAwarded >= 15 ? [100, 50, 100, 50, 100] : [100, 50, 100]
@@ -301,8 +295,7 @@ const notificationIntegration = {
               taskTitle: taskTitle,
               pointsValue: pointsValue,
               senderName: senderName,
-              assignedToUserId: assignedToUserId,
-              timestamp: new Date().toISOString()
+              assignedToUserId: assignedToUserId
             }
           },
           userId // Wichtig: Den Absender explizit ausschließen!
@@ -333,8 +326,7 @@ const notificationIntegration = {
               taskId: taskId,
               taskTitle: taskTitle,
               daysLeft: daysLeft,
-              assignedUserName: assignedUserName,
-              timestamp: new Date().toISOString()
+              assignedUserName: assignedUserName
             },
             renotify: false // Nicht erneut benachrichtigen, wenn bereits gezeigt
           },
@@ -378,8 +370,7 @@ const notificationIntegration = {
             data: {
               taskTitle: taskTitle,
               changedFields: changedFields,
-              senderName: senderName,
-              timestamp: new Date().toISOString()
+              senderName: senderName
             }
           },
           userId // Wichtig: Den Absender explizit ausschließen!
@@ -405,8 +396,7 @@ const notificationIntegration = {
             url: '/cleaning',
             data: {
               taskTitle: taskTitle,
-              senderName: senderName,
-              timestamp: new Date().toISOString()
+              senderName: senderName
             }
           },
           userId // Wichtig: Den Absender explizit ausschließen!
@@ -443,8 +433,7 @@ const notificationIntegration = {
             data: {
               userId: userId,     // ID des Absenders
               senderName: senderName,  // Explizit den Namen speichern
-              messageId: messageData.id || null,
-              timestamp: new Date().toISOString()
+              messageId: messageData.id || null
             }
           },
           userId // Wichtig: Den Absender explizit ausschließen!
@@ -473,8 +462,7 @@ const notificationIntegration = {
             data: {
               amount: amount,
               reason: reason,
-              fromUser: fromUser,
-              timestamp: new Date().toISOString()
+              fromUser: fromUser
             }
           },
           userId // Wichtig: Den Absender explizit ausschließen!
@@ -498,8 +486,7 @@ const notificationIntegration = {
             data: {
               amount: amount,
               description: description,
-              payer: payer,
-              timestamp: new Date().toISOString()
+              payer: payer
             }
           },
           userId // Wichtig: Den Absender explizit ausschließen!

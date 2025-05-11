@@ -461,7 +461,76 @@ router.delete('/apartment/:apartmentId/list/:id', verifyToken, async (req, res) 
   }
 });
 
-// Item zu einer Liste hinzufügen
+// Item zu einer Liste hinzufügen (neues Format mit Apartment-ID)
+router.post('/apartment/:apartmentId/list/:listId/items', verifyToken, async (req, res) => {
+  try {
+    const { apartmentId, listId } = req.params;
+    
+    // Prüfen, ob der Benutzer Zugriff auf das Apartment hat
+    const [apartments] = await pool.query(
+      'SELECT * FROM user_apartments WHERE apartment_id = ? AND user_id = ?',
+      [apartmentId, req.user.id]
+    );
+    
+    if (apartments.length === 0) {
+      return res.status(403).json({ message: 'Keine Berechtigung für dieses Apartment' });
+    }
+    
+    // Prüfen, ob die Liste zum angegebenen Apartment gehört
+    const [lists] = await pool.query(
+      'SELECT * FROM shopping_lists WHERE id = ? AND apartment_id = ?',
+      [listId, apartmentId]
+    );
+    
+    if (lists.length === 0) {
+      return res.status(404).json({ message: 'Einkaufsliste nicht gefunden' });
+    }
+    
+    const { name, quantity, category, checked } = req.body;
+    
+    console.log('Füge Item zur Liste hinzu:', { listId, name, category, quantity, checked });
+    
+    // Prüfe, ob der Artikel bereits existiert (gleicher Name und Kategorie)
+    const [existingItems] = await pool.query(
+      'SELECT * FROM shopping_items WHERE list_id = ? AND name = ? AND category = ?',
+      [listId, name, category || 'sonstiges']
+    );
+    
+    if (existingItems.length > 0) {
+      // Ein Artikel mit diesem Namen und dieser Kategorie existiert bereits,
+      // also aktualisieren wir ihn stattdessen
+      await pool.query(
+        'UPDATE shopping_items SET quantity = ?, checked = ? WHERE id = ?',
+        [quantity || '', checked ? 1 : 0, existingItems[0].id]
+      );
+      
+      const [updatedItem] = await pool.query(
+        'SELECT * FROM shopping_items WHERE id = ?',
+        [existingItems[0].id]
+      );
+      
+      return res.json(updatedItem[0]);
+    }
+    
+    // Ansonsten neuen Artikel hinzufügen
+    const [result] = await pool.query(
+      'INSERT INTO shopping_items (name, quantity, category, checked, list_id) VALUES (?, ?, ?, ?, ?)',
+      [name, quantity || '', category || 'sonstiges', checked ? 1 : 0, listId]
+    );
+    
+    const [newItem] = await pool.query(
+      'SELECT * FROM shopping_items WHERE id = ?',
+      [result.insertId]
+    );
+    
+    res.status(201).json(newItem[0]);
+  } catch (error) {
+    console.error('Fehler beim Hinzufügen des Artikels:', error);
+    res.status(500).json({ message: 'Serverfehler' });
+  }
+});
+
+// Item zu einer Liste hinzufügen (Legacy - zur Abwärtskompatibilität)
 router.post('/:id/items', verifyToken, async (req, res) => {
   try {
     // Benutzer-Apartments abrufen
