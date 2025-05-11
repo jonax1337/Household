@@ -719,4 +719,124 @@ router.delete('/:listId/items/:itemId', verifyToken, async (req, res) => {
   }
 });
 
+// Status eines Shopping-Items umschalten (neues Format mit Apartment-ID)
+router.patch('/apartment/:apartmentId/list/:listId/items/:itemId/toggle', verifyToken, async (req, res) => {
+  try {
+    const { apartmentId, listId, itemId } = req.params;
+    
+    // Prüfen, ob der Benutzer Zugriff auf das Apartment hat
+    const [apartments] = await pool.query(
+      'SELECT * FROM user_apartments WHERE apartment_id = ? AND user_id = ?',
+      [apartmentId, req.user.id]
+    );
+    
+    if (apartments.length === 0) {
+      return res.status(403).json({ message: 'Keine Berechtigung für dieses Apartment' });
+    }
+    
+    // Prüfen, ob die Liste zum angegebenen Apartment gehört
+    const [lists] = await pool.query(
+      'SELECT * FROM shopping_lists WHERE id = ? AND apartment_id = ?',
+      [listId, apartmentId]
+    );
+    
+    if (lists.length === 0) {
+      return res.status(404).json({ message: 'Einkaufsliste nicht gefunden' });
+    }
+    
+    // Prüfen, ob das Item zur Liste gehört
+    const [items] = await pool.query(
+      'SELECT * FROM shopping_items WHERE id = ? AND list_id = ?',
+      [itemId, listId]
+    );
+    
+    if (items.length === 0) {
+      return res.status(404).json({ message: 'Artikel nicht gefunden' });
+    }
+    
+    const item = items[0];
+    const newCheckedStatus = item.checked === 1 ? 0 : 1;
+    
+    console.log(`Toggle Item ${itemId} Status von ${item.checked} zu ${newCheckedStatus}`);
+    
+    // Status umschalten
+    await pool.query(
+      'UPDATE shopping_items SET checked = ? WHERE id = ?',
+      [newCheckedStatus, itemId]
+    );
+    
+    // Aktualisiertes Item abrufen
+    const [updatedItem] = await pool.query(
+      'SELECT * FROM shopping_items WHERE id = ?',
+      [itemId]
+    );
+    
+    res.json(updatedItem[0]);
+  } catch (error) {
+    console.error('Fehler beim Umschalten des Item-Status:', error);
+    res.status(500).json({ message: 'Serverfehler' });
+  }
+});
+
+// Status eines Shopping-Items umschalten (Legacy - zur Abwärtskompatibilität)
+router.patch('/:listId/items/:itemId/toggle', verifyToken, async (req, res) => {
+  try {
+    const { listId, itemId } = req.params;
+    
+    // Benutzer-Apartments abrufen
+    const [userApartments] = await pool.query(
+      'SELECT apartment_id FROM user_apartments WHERE user_id = ?',
+      [req.user.id]
+    );
+    
+    const apartmentIds = userApartments.map(ua => ua.apartment_id);
+    
+    if (apartmentIds.length === 0) {
+      return res.status(403).json({ message: 'Keine Berechtigung' });
+    }
+    
+    // Prüfen, ob die Liste zu einem der Apartments des Benutzers gehört
+    const [lists] = await pool.query(
+      'SELECT * FROM shopping_lists WHERE id = ? AND apartment_id IN (?)',
+      [listId, apartmentIds]
+    );
+    
+    if (lists.length === 0) {
+      return res.status(404).json({ message: 'Einkaufsliste nicht gefunden oder keine Berechtigung' });
+    }
+    
+    // Prüfen, ob das Item zur Liste gehört
+    const [items] = await pool.query(
+      'SELECT * FROM shopping_items WHERE id = ? AND list_id = ?',
+      [itemId, listId]
+    );
+    
+    if (items.length === 0) {
+      return res.status(404).json({ message: 'Artikel nicht gefunden' });
+    }
+    
+    const item = items[0];
+    const newCheckedStatus = item.checked === 1 ? 0 : 1;
+    
+    console.log(`Toggle Item ${itemId} Status von ${item.checked} zu ${newCheckedStatus}`);
+    
+    // Status umschalten
+    await pool.query(
+      'UPDATE shopping_items SET checked = ? WHERE id = ?',
+      [newCheckedStatus, itemId]
+    );
+    
+    // Aktualisiertes Item abrufen
+    const [updatedItem] = await pool.query(
+      'SELECT * FROM shopping_items WHERE id = ?',
+      [itemId]
+    );
+    
+    res.json(updatedItem[0]);
+  } catch (error) {
+    console.error('Fehler beim Umschalten des Item-Status:', error);
+    res.status(500).json({ message: 'Serverfehler' });
+  }
+});
+
 module.exports = router;
