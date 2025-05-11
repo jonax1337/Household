@@ -7,6 +7,52 @@ import NoApartmentSelected from './NoApartmentSelected';
 
 // CSS-Stile für die ShoppingList-Komponente
 const styles = {
+  // Header Styles
+  stickyHeaderCard: {
+    position: 'sticky',
+    top: 'max(16px, env(safe-area-inset-top) + 16px)', // Berücksichtigt Safe Area für Geräte mit Notches
+    zIndex: 10,
+    background: 'var(--card-background)', // Transparenter Hintergrund für Glaseffekt
+    backdropFilter: 'var(--glass-blur)', // Unschärfe-Effekt für Glasmorphismus
+    WebkitBackdropFilter: 'var(--glass-blur)', // Für Safari
+    padding: '10px 15px',
+    marginBottom: '15px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.05)', // Weicher Schatten für Glaseffekt
+    borderRadius: 'var(--card-radius)',
+    border: 'var(--glass-border)', // Feine Grenze für Glaseffekt
+    transition: 'all 0.3s ease',
+  },
+  headerContent: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%'
+  },
+  headerTitle: {
+    margin: 0,
+    fontSize: 'clamp(1.5rem, 4vw, 2.5rem)',
+    fontWeight: 'bold',
+    color: 'var(--text-primary)'
+  },
+  titleWithBack: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px'
+  },
+  backButton: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+    border: 'none',
+    fontSize: '16px',
+    color: 'var(--text-secondary)',
+    cursor: 'pointer',
+    padding: '5px'
+  },
   quickAddItem: {
     marginTop: '15px',
     borderTop: '1px dashed var(--border)',
@@ -80,7 +126,6 @@ const styles = {
     borderRadius: '5px',
     color: 'var(--text-primary)',
     cursor: 'pointer',
-    marginBottom: '15px',
     marginLeft: '-5px' // Stärker nach links verschieben
   },
   iconButton: {
@@ -159,6 +204,11 @@ const ShoppingList = ({ selectedApartment }) => {
   const [editedListName, setEditedListName] = useState('');
   const [updatingListName, setUpdatingListName] = useState(false);
   const [editingListId, setEditingListId] = useState(null); // Fu00fcr die Bearbeitung in der U00fcbersicht
+
+  // States fu00fcr die Item-Bearbeitung via Long-Press
+  const [showEditItemForm, setShowEditItemForm] = useState(false);
+  const [currentEditItem, setCurrentEditItem] = useState(null);
+  const [longPressTimer, setLongPressTimer] = useState(null);
   
   // Kategorien für Einkaufsartikel
   const categories = [
@@ -223,6 +273,90 @@ const ShoppingList = ({ selectedApartment }) => {
     loadItems();
   }, [apartmentId, activeList]);
 
+  // Long-Press-Funktionen für mobiles Bearbeiten
+  const handleItemTouchStart = (item) => {
+    // Starte den Timer für Long-Press (500ms)
+    const timer = setTimeout(() => {
+      // Long-Press erkannt - Öffne Bearbeitungsformular
+      if ('vibrate' in navigator) {
+        navigator.vibrate(100); // Längere Vibration für Long-Press
+      }
+      setCurrentEditItem(item);
+      setShowEditItemForm(true);
+    }, 500);
+    
+    setLongPressTimer(timer);
+  };
+  
+  const handleItemTouchEnd = () => {
+    // Wenn der Finger losgelassen wird, breche den Timer ab
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+  };
+  
+  const handleItemTouchMove = () => {
+    // Wenn der Finger bewegt wird, breche den Timer ab
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+  };
+  
+  // Artikel aktualisieren
+  const handleUpdateItem = async () => {
+    if (!currentEditItem) return;
+    
+    try {
+      // Spezieller Fall für benutzerdefinierte Kategorie
+      const categoryToUse = currentEditItem.category === 'custom' && currentEditItem.customCategory 
+        ? currentEditItem.customCategory 
+        : currentEditItem.category;
+        
+      const updatedItem = {
+        ...currentEditItem,
+        category: categoryToUse,
+      };
+      
+      delete updatedItem.customCategory; // Entferne das Hilfsfeld vor dem API-Aufruf
+      
+      // API-Aufruf zum Aktualisieren
+      const result = await shoppingService.updateItem(
+        apartmentId, 
+        activeList,
+        currentEditItem.id,
+        {
+          name: updatedItem.name,
+          quantity: updatedItem.quantity,
+          category: updatedItem.category
+        }
+      );
+      
+      if (result) {
+        // Update der lokalen Daten
+        if (updatedItem.completed) {
+          // Aktualisiere das archivierte Item
+          setArchivedItems(archivedItems.map(item => 
+            item.id === currentEditItem.id ? updatedItem : item
+          ));
+        } else {
+          // Aktualisiere das aktive Item
+          setItems(items.map(item => 
+            item.id === currentEditItem.id ? updatedItem : item
+          ));
+        }
+        
+        // Schließe das Formular
+        setShowEditItemForm(false);
+        setCurrentEditItem(null);
+      }
+    } catch (error) {
+      console.error('Fehler beim Aktualisieren des Items:', error);
+      // Hier könnte eine Fehlerbehandlung eingefügt werden
+    }
+  };
+
   // Status eines Items umschalten (erledigt/nicht erledigt)
   const toggleItemStatus = async (itemId) => {
     try {
@@ -231,6 +365,11 @@ const ShoppingList = ({ selectedApartment }) => {
       if (!itemToToggle) {
         console.warn('Item mit ID nicht gefunden:', itemId);
         return;
+      }
+
+      // Vibration auslösen, wenn verfügbar (funktioniert auf mobilen Geräten)
+      if ('vibrate' in navigator) {
+        navigator.vibrate(50); // 50ms kurze Vibration
       }
       
       // Bestimme den neuen Status
@@ -425,20 +564,80 @@ const ShoppingList = ({ selectedApartment }) => {
 
   return (
     <div className="container fadeIn">
-      <div className="card" style={{ marginBottom: '20px' }}>
-        {/* Header mit Titel und Plus-Button in einer Linie */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h1 style={{ margin: 0 }}>Einkaufslisten</h1>
-          
-          <button 
-            className="icon-button-add" 
-            onClick={() => setShowAddListForm(true)}
-            title="Neue Liste erstellen"
-            style={{ marginLeft: 'auto' }}
-          >
-            <FiPlus size={24} />
-          </button>
+      {/* Sticky Header */}
+      <div style={styles.stickyHeaderCard}>
+        <div style={styles.headerContent}>
+          {showListsView ? (
+            /* Header für Listenübersicht */
+            <>
+              <h1 style={styles.headerTitle}>Einkaufslisten</h1>
+              <button
+                className="icon-button-add"
+                onClick={() => setShowAddListForm(true)}
+                title="Neue Liste erstellen"
+              >
+                <FiPlus size={24} />
+              </button>
+            </>
+          ) : (
+            /* Header für Listendetails mit Titel und Zurück-Button links daneben */
+            <>
+              <div style={styles.titleWithBack}>
+                <button
+                  style={styles.backButton}
+                  onClick={() => {
+                    setShowListsView(true);
+                    setShowArchive(false);
+                  }}
+                  title="Zurück zur Übersicht"
+                >
+                  <FiArrowLeft size={16} /> Zurück
+                </button>
+                
+                {isEditingListName ? (
+                  <input
+                    type="text"
+                    value={editedListName}
+                    onChange={(e) => setEditedListName(e.target.value)}
+                    onBlur={saveListName}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') saveListName();
+                      if (e.key === 'Escape') cancelEditingListName();
+                    }}
+                    autoFocus
+                    style={{
+                      fontSize: 'clamp(1.2rem, 3vw, 2rem)',
+                      fontWeight: 'bold',
+                      padding: '5px 10px',
+                      borderRadius: '6px',
+                      border: '1px solid var(--border)',
+                      width: '200px'
+                    }}
+                  />
+                ) : (
+                  <h1
+                    style={{...styles.headerTitle, cursor: 'pointer'}}
+                    onClick={startEditingListName}
+                    title="Klicken zum Bearbeiten"
+                  >
+                    {lists.find(list => list.id === activeList)?.name || 'Liste'}
+                  </h1>
+                )}
+              </div>
+              <button
+                className="icon-button-add"
+                onClick={() => setShowAddItemForm(true)}
+                title="Artikel hinzufügen"
+              >
+                <FiPlus size={24} />
+              </button>
+            </>
+          )}
         </div>
+      </div>
+      
+      <div className="card" style={{ marginBottom: '20px' }}>
+        {/* Der Rest des Inhalts bleibt in einer Card */}
 
         {/* Toggle zwischen Listenübersicht und Detailansicht */}
         {showListsView ? (
@@ -633,115 +832,7 @@ const ShoppingList = ({ selectedApartment }) => {
         ) : (
           /* Detailansicht einer Liste */
           <div>
-            <div style={{ marginBottom: '15px' }}>
-              <button 
-                onClick={() => setShowListsView(true)} 
-                style={styles.backButton}
-              >
-                <FiArrowLeft size={18} /> Zurück zu allen Listen
-              </button>
-            </div>
-            
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-              {isEditingListName ? (
-                <div style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '8px',
-                  flex: '1'
-                }}>
-                  <input 
-                    type="text"
-                    value={editedListName}
-                    onChange={(e) => setEditedListName(e.target.value)}
-                    style={{
-                      flex: '1',
-                      padding: '8px 12px',
-                      borderRadius: '6px',
-                      border: '1px solid var(--border)',
-                      backgroundColor: 'var(--bg-secondary)',
-                      fontSize: '16px',
-                      fontWeight: 'bold',
-                      color: 'var(--text-primary)',
-                      transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
-                      outline: 'none',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-                    }}
-                    autoFocus
-                    onFocus={(e) => e.target.select()}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        saveListName();
-                      } else if (e.key === 'Escape') {
-                        setIsEditingListName(false);
-                      }
-                    }}
-                  />
-                  <div style={{ display: 'flex', gap: '4px' }}>
-                    <button 
-                      className="icon-button"
-                      onClick={saveListName}
-                      disabled={updatingListName}
-                      title="Speichern"
-                      style={{
-                        backgroundColor: 'var(--success-light)',
-                        color: 'var(--success)',
-                        width: '36px',
-                        height: '36px'
-                      }}
-                    >
-                      {updatingListName ? (
-                        <span className="spinner" style={{ width: '16px', height: '16px' }}></span>
-                      ) : (
-                        <FiCheck size={18} />
-                      )}
-                    </button>
-                    <button 
-                      className="icon-button"
-                      onClick={() => setIsEditingListName(false)}
-                      disabled={updatingListName}
-                      title="Abbrechen"
-                      style={{
-                        backgroundColor: 'var(--bg-secondary)',
-                        width: '36px',
-                        height: '36px'
-                      }}
-                    >
-                      <FiX size={18} />
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '10px'
-                }}>
-                  <h3 style={{ margin: 0, color: 'var(--text-primary)' }}>
-                    {lists.find(list => list.id === activeList)?.name || 'Einkaufsliste'}
-                  </h3>
-                  <button 
-                    className="icon-button"
-                    onClick={startEditingListName}
-                    title="Listennamen bearbeiten"
-                    style={{
-                      padding: '5px',
-                      backgroundColor: 'transparent',
-                      transition: 'all 0.2s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'var(--bg-hover)';
-                      e.currentTarget.style.transform = 'translateY(-1px)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                      e.currentTarget.style.transform = 'translateY(0)';
-                    }}
-                  >
-                    <FiEdit size={16} color="var(--text-secondary)" />
-                  </button>
-                </div>
-              )}
               <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                 {!showArchive && items.length > 0 && (
                   <button 
@@ -779,10 +870,6 @@ const ShoppingList = ({ selectedApartment }) => {
                 >
                   {showArchive ? <FiShoppingCart size={20} /> : <FiArchive size={20} />}
                 </button>
-                {/* Schnelles Hinzufügen am Ende der Liste */}
-                <button type="submit" className="icon-button-add" onClick={() => setShowAddItemForm(true)}>
-                  <FiPlus size={20} />
-                </button> 
               </div>
             </div>
             
@@ -801,11 +888,15 @@ const ShoppingList = ({ selectedApartment }) => {
                     Erledigte Produkte
                   </h4>
                   {archivedItems.map(item => (
-                    <div key={item.id} className={`shopping-item completed`} style={{ marginBottom: '10px' }}>
+                    <div key={item.id} className={`shopping-item completed`} style={{ marginBottom: '10px' }}
+                      onTouchStart={() => handleItemTouchStart(item)}
+                      onTouchEnd={handleItemTouchEnd}
+                      onTouchMove={handleItemTouchMove}
+                    >
                       <div className="item-checkbox" onClick={() => toggleItemStatus(item.id)}>
                         <FiCheck />
                       </div>
-                      <div className="item-content" onClick={() => toggleItemStatus(item.id)}>
+                      <div className="item-content">
                         <div className="item-name" style={{ color: 'var(--text-primary)' }}>{item.name}</div>
                         <div className="item-quantity" style={{ color: 'var(--text-secondary)' }}>{item.quantity}</div>
                       </div>
@@ -885,11 +976,15 @@ const ShoppingList = ({ selectedApartment }) => {
                               </h4>
                               
                               {categoryItems.map(item => (
-                                <div key={item.id} className={`shopping-item ${item.completed ? 'completed' : ''}`} style={{ marginBottom: '10px' }}>
+                                <div key={item.id} className={`shopping-item ${item.completed ? 'completed' : ''}`} style={{ marginBottom: '10px' }}
+                                  onTouchStart={() => handleItemTouchStart(item)}
+                                  onTouchEnd={handleItemTouchEnd}
+                                  onTouchMove={handleItemTouchMove}
+                                >
                                   <div className="item-checkbox" onClick={() => toggleItemStatus(item.id)}>
                                     {item.completed ? <FiCheck /> : null}
                                   </div>
-                                  <div className="item-content" onClick={() => toggleItemStatus(item.id)}>
+                                  <div className="item-content">
                                     <div className="item-name" style={{ color: 'var(--text-primary)' }}>{item.name}</div>
                                     <div className="item-quantity" style={{ color: 'var(--text-secondary)' }}>{item.quantity}</div>
                                   </div>
@@ -913,11 +1008,15 @@ const ShoppingList = ({ selectedApartment }) => {
                               </h4>
                               
                               {categoryItems.map(item => (
-                                <div key={item.id} className={`shopping-item ${item.completed ? 'completed' : ''}`} style={{ marginBottom: '10px' }}>
+                                <div key={item.id} className={`shopping-item ${item.completed ? 'completed' : ''}`} style={{ marginBottom: '10px' }}
+                                  onTouchStart={() => handleItemTouchStart(item)}
+                                  onTouchEnd={handleItemTouchEnd}
+                                  onTouchMove={handleItemTouchMove}
+                                >
                                   <div className="item-checkbox" onClick={() => toggleItemStatus(item.id)}>
                                     {item.completed ? <FiCheck /> : null}
                                   </div>
-                                  <div className="item-content" onClick={() => toggleItemStatus(item.id)}>
+                                  <div className="item-content">
                                     <div className="item-name" style={{ color: 'var(--text-primary)' }}>{item.name}</div>
                                     <div className="item-quantity" style={{ color: 'var(--text-secondary)' }}>{item.quantity}</div>
                                   </div>
@@ -940,11 +1039,15 @@ const ShoppingList = ({ selectedApartment }) => {
                         Produkte (alphabetisch)
                       </h4>
                       {items.sort((a, b) => a.name.localeCompare(b.name)).map(item => (
-                        <div key={item.id} className={`shopping-item ${item.completed ? 'completed' : ''}`} style={{ marginBottom: '10px' }}>
+                        <div key={item.id} className={`shopping-item ${item.completed ? 'completed' : ''}`} style={{ marginBottom: '10px' }}
+                          onTouchStart={() => handleItemTouchStart(item)}
+                          onTouchEnd={handleItemTouchEnd}
+                          onTouchMove={handleItemTouchMove}
+                        >
                           <div className="item-checkbox" onClick={() => toggleItemStatus(item.id)}>
                             {item.completed ? <FiCheck /> : null}
                           </div>
-                          <div className="item-content" onClick={() => toggleItemStatus(item.id)}>
+                          <div className="item-content">
                             <div className="item-name" style={{ color: 'var(--text-primary)' }}>{item.name}</div>
                             <div className="item-quantity" style={{ color: 'var(--text-secondary)' }}>{item.quantity}</div>
                           </div>
@@ -1093,6 +1196,105 @@ const ShoppingList = ({ selectedApartment }) => {
           </div>,
           document.body
         )}
+        
+        {/* Fullscreen-Modal zum Bearbeiten eines Artikels (über Long-Press) */}
+        {showEditItemForm && currentEditItem && createPortal(
+          <div className="fullscreen-menu fadeIn">
+            <div className="fullscreen-menu-content">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h2>Artikel bearbeiten</h2>
+                <button 
+                  className="icon-button" 
+                  onClick={() => {
+                    setShowEditItemForm(false);
+                    setCurrentEditItem(null);
+                  }}
+                >
+                  <FiX size={20} />
+                </button>
+              </div>
+              
+              <div className="form-group">
+                <label>Produktname</label>
+                <input 
+                  type="text" 
+                  className="input"
+                  placeholder="z.B. Milch"
+                  value={currentEditItem.name}
+                  onChange={(e) => setCurrentEditItem({...currentEditItem, name: e.target.value})}
+                  style={{ width: '100%', marginBottom: '15px' }}
+                  autoFocus
+                />
+                
+                <label>Menge</label>
+                <input 
+                  type="text" 
+                  className="input"
+                  placeholder="z.B. 1 Liter"
+                  value={currentEditItem.quantity}
+                  onChange={(e) => setCurrentEditItem({...currentEditItem, quantity: e.target.value})}
+                  style={{ width: '100%', marginBottom: '15px' }}
+                />
+                
+                <label>Kategorie</label>
+                <select 
+                  className="input"
+                  value={currentEditItem.category}
+                  onChange={(e) => setCurrentEditItem({
+                    ...currentEditItem, 
+                    category: e.target.value, 
+                    customCategory: e.target.value === 'custom' ? currentEditItem.customCategory : ''
+                  })}
+                  style={{ width: '100%', marginBottom: currentEditItem.category === 'custom' ? '15px' : '25px' }}
+                >
+                  {categories.map(cat => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+                
+                {currentEditItem.category === 'custom' && (
+                  <div style={{ marginBottom: '25px' }}>
+                    <label>Benutzerdefinierte Kategorie</label>
+                    <input
+                      type="text"
+                      className="input"
+                      placeholder="z.B. Elektronik, Kleidung, etc."
+                      value={currentEditItem.customCategory || ''}
+                      onChange={(e) => setCurrentEditItem({...currentEditItem, customCategory: e.target.value})}
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                )}
+                
+                <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+                  <button 
+                    className="button primary"
+                    onClick={handleUpdateItem}
+                    disabled={!currentEditItem.name.trim()}
+                    style={{ flex: 1 }}
+                  >
+                    Speichern
+                  </button>
+                  
+                  <button 
+                    className="button secondary"
+                    onClick={() => {
+                      setShowEditItemForm(false);
+                      setCurrentEditItem(null);
+                    }}
+                    style={{ flex: 1 }}
+                  >
+                    Abbrechen
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+        
       </div>
       {/* Zusätzlicher Div am Ende des Containers für Abstand zur Navbar */}
       <div style={{ marginBottom: '120px' }}></div>
