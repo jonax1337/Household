@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { FiBell, FiBellOff, FiCheckCircle, FiAlertTriangle } from 'react-icons/fi';
+import { FiBell, FiBellOff, FiCheckCircle, FiAlertTriangle, FiSmartphone } from 'react-icons/fi';
 import notificationService from '../services/notificationService';
+import { isIOS, isInstalledPWA, isPushSupported, getPushSupportMessage } from '../services/deviceDetection';
 
 const NotificationPrompt = ({ embedded = false }) => {
   const [permission, setPermission] = useState('default');
@@ -30,19 +31,28 @@ const NotificationPrompt = ({ embedded = false }) => {
       if (Notification.permission === 'granted') {
         // Prüfe, ob bereits eine Push-Subscription besteht, falls nicht, abonniere automatisch
         checkExistingSubscriptionAndSubscribe();
-      } else if (Notification.permission === 'default' && !localStorage.getItem('notificationPromptDismissed')) {
-        // Nur Prompt zeigen, wenn Benutzer ihn nicht bereits abgelehnt hat
-        setShowPrompt(true);
+      } else if (Notification.permission === 'default') {
+        // Sofort Berechtigung anfragen, wenn sie noch nicht erteilt oder verweigert wurde
+        // und nicht bereits abgelehnt wurde
+        if (!localStorage.getItem('notificationPromptDismissed')) {
+          // Kurze Verzögerung, damit die Seite zuerst geladen werden kann
+          setTimeout(() => {
+            requestPermission();
+          }, 2000); // 2 Sekunden Verzögerung für bessere UX
+          
+          setShowPrompt(true);
+        }
       }
     }
   }, []);
 
-  // Prüfen, ob Push-API unterstützt wird und Services verfügbar sind
-  const isPushSupported = notificationService.isPushSupported();
+  // Prüfen, ob Push-API unterstützt wird und Services verfügbar sind (nutze den neuen Service)
+  const pushSupported = isPushSupported();
+  const [showIOSHelp, setShowIOSHelp] = useState(isIOS() && !isInstalledPWA());
 
   // Prüft, ob bereits eine Push-Subscription existiert und abonniert automatisch
   const checkExistingSubscriptionAndSubscribe = async () => {
-    if (!isPushSupported) return;
+    if (!pushSupported) return;
 
     try {
       const registration = await navigator.serviceWorker.ready;
@@ -76,9 +86,17 @@ const NotificationPrompt = ({ embedded = false }) => {
 
   // Registriere für Push-Benachrichtigungen
   const requestPermission = async () => {
-    if (!isPushSupported) {
+    if (!pushSupported) {
       setStatus('error');
-      setStatusMessage('Dein Browser unterstützt keine Push-Benachrichtigungen');
+      setStatusMessage(getPushSupportMessage());
+      return;
+    }
+    
+    // Spezielle Anweisung für iOS-Benutzer, wenn App nicht installiert ist
+    if (isIOS() && !isInstalledPWA()) {
+      setStatus('warning');
+      setStatusMessage('Füge diese App zum Homescreen hinzu, um Push-Benachrichtigungen zu erhalten.');
+      setShowIOSHelp(true);
       return;
     }
 
@@ -155,8 +173,28 @@ const NotificationPrompt = ({ embedded = false }) => {
   };
 
   // Wenn Benachrichtigungen nicht unterstützt werden oder nicht angezeigt werden sollen
-  // Im embedded-Modus immer etwas anzeigen, sonst nur wenn showPrompt true ist
-  if (!isPushSupported || (!embedded && !showPrompt && status === null)) {
+  // Im embedded-Modus immer etwas anzeigen, sonst nur wenn showPrompt true ist oder iOS-Hilfe angezeigt werden soll
+  if (!pushSupported && !showIOSHelp) {
+    if (!embedded) {
+      return null;
+    }
+    // Anzeigen einer Hilfestellung, wenn eingebettet und Push nicht unterstützt wird
+    return (
+      <div className="notification-prompt embedded">
+        <div className="content">
+          <div className="icon-container warning">
+            <FiAlertTriangle />
+          </div>
+          <div className="text-container">
+            <h3>Benachrichtigungen nicht verfügbar</h3>
+            <p>{getPushSupportMessage()}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!embedded && !showPrompt && status === null && !showIOSHelp) {
     return null;
   }
 
