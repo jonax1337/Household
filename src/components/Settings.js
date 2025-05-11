@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { FiSun, FiBell, FiCheckCircle, FiMoon, FiRefreshCw, FiHome, FiLogOut, FiEdit, FiTrash2, FiX, FiShare2, FiCopy, FiHeart, FiUser, FiSettings as FiGear, FiUsers, FiAward, FiUserX } from 'react-icons/fi';
+import { FiSun, FiBell, FiCheckCircle, FiMoon, FiRefreshCw, FiHome, FiLogOut, FiEdit, FiTrash2, FiX, FiShare2, FiCopy, FiHeart, FiUser, FiSettings as FiGear, FiUsers, FiAward, FiUserX, FiDelete, FiInfo } from 'react-icons/fi';
 import AddressPicker from './AddressPicker';
 import { useTheme } from '../context/ThemeContext';
 import { authService, apartmentService, roommateService } from '../services/api';
@@ -595,8 +595,8 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
       {/* Bestätigungsdialog zum Löschen der Wohnung */}
       {showDeleteConfirmation && selectedApartment && createPortal(
         <div className="fullscreen-menu fadeIn">
-          <div className="fullscreen-menu-content dialog-small">
-            <div>
+          <div className="fullscreen-menu-content">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h2>Wohnung löschen</h2>
               <button 
                 className="icon-button" 
@@ -606,23 +606,46 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
               </button>
             </div>
             
-            <p style={{ marginBottom: '20px' }}>
-              Bist du sicher, dass du die Wohnung <strong>{selectedApartment.name}</strong> löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden und alle Daten werden dauerhaft gelöscht.
-            </p>
-            
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-              <button 
-                className="button secondary"
-                onClick={() => setShowDeleteConfirmation(false)}
-              >
-                Abbrechen
-              </button>
+            <div style={{ marginBottom: '16px', width: '100%', maxWidth: '100%' }}>
+              <p style={{color: 'var(--text)', marginBottom: '8px'}}>
+              Du bist dabei, die Wohnung <strong>"{selectedApartment.name}"</strong> zu löschen.</p>
+                                    <div style={{
+                                      backgroundColor: 'rgba(var(--primary-rgb), 0.08)',
+                                      padding: '10px 15px',
+                                      borderRadius: 'var(--button-radius)',
+                                      marginBottom: '20px'
+                                    }}>
+                                      <h4 style={{ marginTop: 0, marginBottom: '5px', color: 'var(--error)' }}>
+                                        <FiInfo style={{ verticalAlign: 'middle', marginRight: '5px' }} /> <strong>Achtung</strong>
+                                      </h4>
+                                      <p style={{ margin: 0, fontSize: '14px', color: 'var(--text)' }}>
+                                      Alle zugehörigen Daten (Einkaufslisten, Aufgaben, Nachrichten, Finanzen) werden dauerhaft gelöscht.                                      </p>
+                                    </div>
+             
               <button 
                 className="button danger"
                 onClick={handleDeleteApartment}
-                style={{ backgroundColor: 'var(--error)', boxShadow: '0 4px 12px rgba(255, 100, 124, 0.3)' }}
+                style={{ 
+                  width: '100%', 
+                  backgroundColor: 'var(--primary)', 
+                  padding: '12px 20px',
+                  marginBottom: '15px',
+                  fontWeight: 'bold'
+                }}
               >
                 Wohnung löschen
+              </button>
+              
+              <button 
+                className="button secondary"
+                onClick={() => setShowDeleteConfirmation(false)}
+                style={{ 
+                  width: '100%', 
+                  padding: '12px 20px',
+                  backgroundColor: 'var(--error)',
+                }}
+              >
+                Abbrechen
               </button>
             </div>
           </div>
@@ -633,7 +656,7 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
       {/* Modal für Einladungscode */}
       {showInviteCodeModal && selectedApartment && createPortal(
         <div className="fullscreen-menu fadeIn">
-          <div className="fullscreen-menu-content dialog-small">
+          <div className="fullscreen-menu-content">
             <div>
               <h2>Einladungscode teilen</h2>
               <button 
@@ -714,15 +737,6 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
                 Code in die Zwischenablage kopiert!
               </div>
             )}
-            
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <button 
-                className="button primary"
-                onClick={() => setShowInviteCodeModal(false)}
-              >
-                Schließen
-              </button>
-            </div>
           </div>
         </div>,
         document.body
