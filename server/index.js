@@ -20,16 +20,21 @@ const activitiesRoutes = require('./routes/activities'); // Neu: Activities-Rout
 
 const app = express();
 const server = http.createServer(app);
+const socketCorsOrigins = process.env.SOCKET_CORS_ORIGIN ? 
+  process.env.SOCKET_CORS_ORIGIN.split(',') : 
+  (process.env.NODE_ENV === 'production' ? [] : '*');
+
 const io = new Server(server, {
   cors: {
-    origin: '*',
-    methods: ['GET', 'POST']
+    origin: socketCorsOrigins,
+    methods: ['GET', 'POST'],
+    credentials: true
   }
 });
 
 const PORT = process.env.PORT || 5000;
 
-// Erweiterte CORS-Konfiguration für lokales Netzwerk und Produktion
+// Erweiterte CORS-Konfiguration für Produktions- und Entwicklungsumgebung
 const corsOptions = {
   // Erlaube explizit definierte Origins
   origin: function (origin, callback) {
@@ -39,7 +44,9 @@ const corsOptions = {
     // Null origin bedeutet same-origin Anfrage (z.B. vom Browser direkt)
     if (!origin) return callback(null, true);
     
-    // Allowed Origins konfigurieren
+    // Allowed Origins basierend auf Umgebungsvariablen oder Standardwerte konfigurieren
+    const definedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [];
+    
     const allowedOrigins = [
       // Lokale Entwicklung
       'http://localhost:3000',
@@ -48,10 +55,8 @@ const corsOptions = {
       /^https?:\/\/192\.168\./,  // 192.168.x.x
       /^https?:\/\/10\./,        // 10.x.x.x
       /^https?:\/\/172\.16\./,  // 172.16.x.x
-      // Render.com Frontend URL
-      'https://household.onrender.com',
-      // Falls du eine eigene Domain hast, füge sie hier hinzu
-      // 'https://deine-domain.de'
+      // Hinzufügen von definierten Origins aus .env
+      ...definedOrigins
     ];
     
     // Prüfe, ob die anfragende Origin in der Liste der erlaubten Origins ist
@@ -68,7 +73,7 @@ const corsOptions = {
       return callback(null, true);
     }
     
-    // Im Production-Mode können wir alle Origins erlauben für einfacheres Testing
+    // Im Production-Mode sind wir strikter mit CORS
     if (process.env.NODE_ENV !== 'production') {
       console.log('Warnung: Nicht-gelistete Origin im Dev-Mode zugelassen:', origin);
       return callback(null, true);
