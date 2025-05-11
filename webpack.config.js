@@ -51,7 +51,16 @@ module.exports = {
           from: 'public', 
           to: '', 
           globOptions: {
-            ignore: ['**/index.html'] // index.html wird bereits durch HtmlWebpackPlugin verarbeitet
+            ignore: ['**/index.html', '**/serviceWorker.js'] // index.html wird bereits durch HtmlWebpackPlugin verarbeitet
+          }
+        },
+        {
+          from: 'public/serviceWorker.js',
+          to: 'serviceWorker.js',
+          transform(content) {
+            // Cache-Busting durch Hinzufügen einer Versionsnummer
+            return content.toString().replace('const SW_VERSION = \'v2.0.0\';',
+              `const SW_VERSION = 'v2.0.${new Date().getTime()}';`);
           }
         }
       ]

@@ -35,11 +35,10 @@ const NotificationPrompt = ({ embedded = false }) => {
         // Sofort Berechtigung anfragen, wenn sie noch nicht erteilt oder verweigert wurde
         // und nicht bereits abgelehnt wurde
         if (!localStorage.getItem('notificationPromptDismissed')) {
-          // Kurze Verzögerung, damit die Seite zuerst geladen werden kann
-          setTimeout(() => {
-            requestPermission();
-          }, 2000); // 2 Sekunden Verzögerung für bessere UX
+          console.log('[NOTIFICATION-PROMPT] Frage sofort nach Berechtigung!');
           
+          // SOFORT Berechtigung anfragen, ohne Verzögerung
+          requestPermission();
           setShowPrompt(true);
         }
       }
@@ -86,7 +85,10 @@ const NotificationPrompt = ({ embedded = false }) => {
 
   // Registriere für Push-Benachrichtigungen
   const requestPermission = async () => {
+    console.log('[NOTIFICATION-PROMPT] requestPermission() aufgerufen');
+    
     if (!pushSupported) {
+      console.log('[NOTIFICATION-PROMPT] Push wird nicht unterstützt');
       setStatus('error');
       setStatusMessage(getPushSupportMessage());
       return;
@@ -94,11 +96,14 @@ const NotificationPrompt = ({ embedded = false }) => {
     
     // Spezielle Anweisung für iOS-Benutzer, wenn App nicht installiert ist
     if (isIOS() && !isInstalledPWA()) {
+      console.log('[NOTIFICATION-PROMPT] iOS erkannt, aber nicht als PWA installiert');
       setStatus('warning');
       setStatusMessage('Füge diese App zum Homescreen hinzu, um Push-Benachrichtigungen zu erhalten.');
       setShowIOSHelp(true);
       return;
     }
+
+    console.log('[NOTIFICATION-PROMPT] Fordere Berechtigung an...');
 
     // Die apartmentId ist jetzt optional, da der Server automatisch die erste findet
     // Wir geben daher keine Fehlermeldung mehr aus, wenn keine apartmentId gesetzt ist
@@ -107,13 +112,26 @@ const NotificationPrompt = ({ embedded = false }) => {
     try {
       // Berechtigung anfordern, falls noch nicht geschehen
       if (Notification.permission !== 'granted') {
-        const permission = await notificationService.requestPermission();
-        setPermission(permission);
+        console.log('[NOTIFICATION-PROMPT] Rufe Notification.requestPermission() direkt auf');
         
-        if (permission !== 'granted') {
+        try {
+          // Direkter Aufruf von Notification.requestPermission() fu00fcr hu00f6here Zuverlu00e4ssigkeit
+          const permission = await Notification.requestPermission();
+          console.log('[NOTIFICATION-PROMPT] Ergebnis der Berechtigungsanfrage:', permission);
+          
+          setPermission(permission);
+          
+          if (permission !== 'granted') {
+            setLoading(false);
+            setStatus('error');
+            setStatusMessage('Benachrichtigungen wurden nicht erlaubt');
+            return;
+          }
+        } catch (permError) {
+          console.error('[NOTIFICATION-PROMPT] Fehler bei der Berechtigungsanfrage:', permError);
           setLoading(false);
           setStatus('error');
-          setStatusMessage('Benachrichtigungen wurden nicht erlaubt');
+          setStatusMessage('Fehler bei der Berechtigungsanfrage: ' + permError.message);
           return;
         }
       }

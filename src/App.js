@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { authService, apartmentService } from './services/api';
 import { ThemeProvider } from './context/ThemeContext';
+import { registerServiceWorker } from './serviceWorkerRegistration';
 
 // Importiere modulare Komponenten
 import Login from './components/Login';
@@ -31,6 +32,42 @@ function App() {
   const [selectedApartment, setSelectedApartment] = useState(null);
   const [inviteCode, setInviteCode] = useState('');
   const [currentUser, setCurrentUser] = useState(null);
+
+  // Sofort nach Benachrichtigungserlaubnis fragen
+  useEffect(() => {
+    // Service Worker registrieren und Push-Berechtigung direkt anfragen
+    const initializeServiceWorkerAndNotifications = async () => {
+      try {
+        // Service Worker registrieren
+        const registration = await registerServiceWorker();
+        console.log('Service Worker ist registriert:', registration);
+        
+        // Sofort nach Benachrichtigungserlaubnis fragen, wenn nicht bereits erteilt
+        if (('Notification' in window) && Notification.permission === 'default') {
+          console.log('Frage sofort nach Benachrichtigungserlaubnis...');
+          try {
+            const permission = await Notification.requestPermission();
+            console.log('Benachtigungsberechtigung:', permission);
+            
+            // Bei Erfolg Push abonnieren, wenn der Benutzer angemeldet ist
+            if (permission === 'granted' && localStorage.getItem('token')) {
+              const PushManager = (await import('./services/notificationService')).default;
+              PushManager.subscribeToPush().catch(err => 
+                console.warn('Konnte Push nicht abonnieren:', err)
+              );
+            }
+          } catch (error) {
+            console.error('Fehler bei der Benachrichtigungsanfrage:', error);
+          }
+        }
+      } catch (error) {
+        console.error('Fehler bei der Service Worker Initialisierung:', error);
+      }
+    };
+    
+    // Service Worker und Benachrichtigungen initialisieren
+    initializeServiceWorkerAndNotifications();
+  }, []); // Leeres Dependency-Array = einmalig beim Laden
 
   // Prüfen, ob der Benutzer bereits angemeldet ist (Token im localStorage)
   useEffect(() => {

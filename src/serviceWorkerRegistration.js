@@ -18,10 +18,13 @@ export function registerServiceWorker() {
         return;
       }
 
+      // Cache-Busting durch Hinzufügen eines Zeitstempels
+      const timestamp = new Date().getTime();
+      
       // Pfad zum Service Worker bestimmen - absolute URL verwenden
       // window.location.origin stellt sicher, dass wir die volle URL haben
-      const swUrl = `${window.location.origin}/serviceWorker.js`;
-      console.log('Service Worker URL:', swUrl);
+      const swUrl = `${window.location.origin}/serviceWorker.js?v=${timestamp}`;
+      console.debug('[SW-REGISTER] Service Worker URL:', swUrl);
       
       const swOptions = {
         scope: '/'
@@ -30,13 +33,22 @@ export function registerServiceWorker() {
       // Prüfe zuerst, ob bereits ein Service Worker registriert ist
       navigator.serviceWorker.getRegistrations()
         .then(registrations => {
+          console.debug('[SW-REGISTER] Vorhandene Service Worker Registrierungen:', registrations.length);
+          
           const existingRegistration = registrations.find(reg => 
             reg.scope === (window.location.origin + '/') && reg.active && reg.active.state === 'activated'
           );
           
           // Wenn bereits ein Service Worker mit dem gleichen Scope existiert und aktiv ist
           if (existingRegistration) {
-            console.log('Bestehender Service Worker gefunden mit Scope:', existingRegistration.scope);
+            console.debug('[SW-REGISTER] Bestehender Service Worker gefunden mit Scope:', existingRegistration.scope);
+            console.debug('[SW-REGISTER] Service Worker Status:', existingRegistration.active ? existingRegistration.active.state : 'nicht aktiv');
+            
+            // Überprüfen, ob der Service Worker aktualisiert werden muss
+            existingRegistration.update().then(() => {
+              console.debug('[SW-REGISTER] Service Worker Update angefordert');
+            });
+            
             return existingRegistration;
           }
           
@@ -59,12 +71,24 @@ export function registerServiceWorker() {
               });
           }
           
-          console.log('Registriere oder reaktiviere Service Worker...');
+          console.debug('[SW-REGISTER] Registriere neuen Service Worker...');
           // Registriere neuen Service Worker falls nicht vorhanden
           return navigator.serviceWorker.register(swUrl, swOptions);
         })
         .then(registration => {
-          console.log('ServiceWorker erfolgreich registriert mit Scope:', registration.scope);
+          console.debug('[SW-REGISTER] ServiceWorker erfolgreich registriert mit Scope:', registration.scope);
+          
+          // Sicherstellen, dass der Service Worker initialisiert wird
+          if (!navigator.serviceWorker.controller) {
+            console.debug('[SW-REGISTER] Warte auf Service Worker Controller...');
+            // Beim ersten Besuch ist der Controller noch nicht gesetzt
+            // Wir können eine Nachricht senden, sobald der Controller bereit ist
+            navigator.serviceWorker.ready.then(() => {
+              console.debug('[SW-REGISTER] Service Worker Controller ist bereit');
+            });
+          } else {
+            console.debug('[SW-REGISTER] Service Worker Controller existiert bereits');
+          }
           
           // Aktiviere den Service Worker sofort
           if (registration.waiting) {
