@@ -18,7 +18,7 @@ const verifyToken = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (error) {
-    res.status(401).json({ message: 'Token ist ungu00fcltig' });
+    res.status(401).json({ message: 'Token ist ungültig' });
   }
 };
 
@@ -62,21 +62,6 @@ router.get('/apartment/:apartmentId', verifyToken, async (req, res) => {
   }
 });
 
-// Liste aller Einkaufslisten eines Benutzers (Legacy - zur Abwärtskompatibilität)
-router.get('/', verifyToken, async (req, res) => {
-  try {
-    const [lists] = await pool.query(
-      'SELECT * FROM shopping_lists WHERE user_id = ? ORDER BY created_at DESC',
-      [req.user.id]
-    );
-    
-    res.json(lists);
-  } catch (error) {
-    console.error('Fehler beim Abrufen der Einkaufslisten:', error);
-    res.status(500).json({ message: 'Serverfehler' });
-  }
-});
-
 // Eine Einkaufsliste nach ID und Apartment abrufen
 router.get('/apartment/:apartmentId/list/:id', verifyToken, async (req, res) => {
   try {
@@ -101,50 +86,62 @@ router.get('/apartment/:apartmentId/list/:id', verifyToken, async (req, res) => 
       return res.status(404).json({ message: 'Einkaufsliste nicht gefunden' });
     }
     
-    const list = lists[0];
-    
-    // Artikel abrufen
     const [items] = await pool.query(
       'SELECT * FROM shopping_items WHERE list_id = ? ORDER BY category, name',
-      [list.id]
+      [id]
     );
     
-    res.json({
-      ...list,
+    const list = {
+      ...lists[0],
       items
-    });
+    };
+    
+    res.json(list);
   } catch (error) {
     console.error('Fehler beim Abrufen der Einkaufsliste:', error);
     res.status(500).json({ message: 'Serverfehler' });
   }
 });
 
-// Eine Einkaufsliste nach ID abrufen (Legacy - zur Abwärtskompatibilität)
-router.get('/:id', verifyToken, async (req, res) => {
+// Eine Einkaufsliste archivieren oder wiederherstellen
+router.put('/apartment/:apartmentId/list/:id/archive', verifyToken, async (req, res) => {
   try {
-    const [lists] = await pool.query(
-      'SELECT * FROM shopping_lists WHERE id = ? AND user_id = ?',
-      [req.params.id, req.user.id]
+    const { apartmentId, id } = req.params;
+    const { archived } = req.body;
+    
+    // Prüfen, ob der Benutzer Zugriff auf das Apartment hat
+    const [apartments] = await pool.query(
+      'SELECT * FROM user_apartments WHERE apartment_id = ? AND user_id = ?',
+      [apartmentId, req.user.id]
     );
     
-    if (lists.length === 0) {
-      return res.status(404).json({ message: 'Einkaufsliste nicht gefunden' });
+    if (apartments.length === 0) {
+      return res.status(403).json({ message: 'Keine Berechtigung für dieses Apartment' });
     }
     
-    const list = lists[0];
-    
-    // Artikel abrufen
-    const [items] = await pool.query(
-      'SELECT * FROM shopping_items WHERE list_id = ? ORDER BY category, name',
-      [list.id]
+    await pool.query(
+      'UPDATE shopping_lists SET archived = ? WHERE id = ? AND apartment_id = ?',
+      [archived ? 1 : 0, id, apartmentId]
     );
     
-    res.json({
-      ...list,
-      items
-    });
+    res.json({ message: archived ? 'Liste wurde archiviert' : 'Liste wurde wiederhergestellt' });
   } catch (error) {
-    console.error('Fehler beim Abrufen der Einkaufsliste:', error);
+    console.error('Fehler beim Archivieren/Wiederherstellen der Einkaufsliste:', error);
+    res.status(500).json({ message: 'Serverfehler' });
+  }
+});
+
+// Liste aller Einkaufslisten eines Benutzers (Legacy - zur Abwärtskompatibilität)
+router.get('/', verifyToken, async (req, res) => {
+  try {
+    const [lists] = await pool.query(
+      'SELECT * FROM shopping_lists WHERE user_id = ? ORDER BY created_at DESC',
+      [req.user.id]
+    );
+    
+    res.json(lists);
+  } catch (error) {
+    console.error('Fehler beim Abrufen der Einkaufslisten:', error);
     res.status(500).json({ message: 'Serverfehler' });
   }
 });
@@ -159,6 +156,9 @@ router.post('/apartment/:apartmentId/list', verifyToken, async (req, res) => {
     const { apartmentId } = req.params;
     const { name, date, items } = req.body;
     
+    // Logging zum Debugging
+    console.log('Erstelle neue Einkaufsliste:', { apartmentId, name, date, itemCount: items?.length || 0 });
+    
     // Prüfen, ob der Benutzer Zugriff auf das Apartment hat
     const [apartments] = await connection.query(
       'SELECT * FROM user_apartments WHERE apartment_id = ? AND user_id = ?',
@@ -170,7 +170,6 @@ router.post('/apartment/:apartmentId/list', verifyToken, async (req, res) => {
       return res.status(403).json({ message: 'Keine Berechtigung für dieses Apartment' });
     }
     
-    // Liste erstellen
     // Sicherstellen, dass das Datum valide ist oder null verwenden
     let safeDate;
     try {
@@ -197,6 +196,7 @@ router.post('/apartment/:apartmentId/list', verifyToken, async (req, res) => {
     
     console.log('Erstelle Einkaufsliste mit Datum:', formattedDate);
     
+    // Liste erstellen
     const [result] = await connection.query(
       'INSERT INTO shopping_lists (name, date, apartment_id) VALUES (?, ?, ?)',
       [name || 'Neue Einkaufsliste', formattedDate, apartmentId]
@@ -247,8 +247,22 @@ router.post('/apartment/:apartmentId/list', verifyToken, async (req, res) => {
     
     res.status(201).json(createdList);
   } catch (error) {
-    await connection.rollback();
-    console.error('Fehler beim Erstellen der Einkaufsliste:', error);
+    try {
+      await connection.rollback();
+    } catch (rollbackError) {
+      console.error('Fehler beim Rollback der Transaktion:', rollbackError);
+    }
+    
+    // Detaillierte Fehlerinformationen loggen
+    console.error('Fehler beim Erstellen der Einkaufsliste:', {
+      message: error.message,
+      stack: error.stack?.substring(0, 500),
+      sqlState: error.sqlState,
+      sqlCode: error.code,
+      sqlErrno: error.errno,
+      params: { apartmentId, itemCount: items?.length || 0 }
+    });
+    
     res.status(500).json({ message: 'Serverfehler beim Erstellen der Einkaufsliste' });
   } finally {
     connection.release();
@@ -284,38 +298,57 @@ router.post('/', verifyToken, async (req, res) => {
     const listId = result.insertId;
     
     // Artikel hinzufügen, falls vorhanden
-    if (items && items.length > 0) {
+    if (items && Array.isArray(items) && items.length > 0) {
       for (const item of items) {
-        await connection.query(
-          'INSERT INTO shopping_items (name, category, checked, list_id) VALUES (?, ?, ?, ?)',
-          [item.name, item.category, item.checked || false, listId]
-        );
+        try {
+          await connection.query(
+            'INSERT INTO shopping_items (name, category, checked, list_id) VALUES (?, ?, ?, ?)',
+            [item.name || 'Neuer Artikel', item.category || 'sonstiges', item.checked ? 1 : 0, listId]
+          );
+        } catch (itemError) {
+          console.error('Fehler beim Hinzufügen eines Artikels:', itemError);
+        }
       }
     }
     
     await connection.commit();
     
+    // Die neu erstellte Liste abrufen
+    const [lists] = await pool.query(
+      'SELECT * FROM shopping_lists WHERE id = ?',
+      [listId]
+    );
+    
+    const [itemsData] = await pool.query(
+      'SELECT * FROM shopping_items WHERE list_id = ?',
+      [listId]
+    );
+    
     res.status(201).json({
-      message: 'Einkaufsliste erfolgreich erstellt',
-      id: listId
+      ...lists[0],
+      items: itemsData
     });
   } catch (error) {
-    await connection.rollback();
+    try {
+      await connection.rollback();
+    } catch (rollbackError) {
+      console.error('Fehler beim Rollback:', rollbackError);
+    }
     console.error('Fehler beim Erstellen der Einkaufsliste:', error);
-    res.status(500).json({ message: 'Serverfehler beim Erstellen der Einkaufsliste' });
+    res.status(500).json({ message: 'Serverfehler' });
   } finally {
     connection.release();
   }
 });
 
-// Einkaufsliste aktualisieren - Legacy Route (veraltet)
+// Eine Einkaufsliste aktualisieren
 router.put('/:id', verifyToken, async (req, res) => {
   try {
     // Versuche einen besseren Ansatz basierend auf der apartment_id statt user_id
     const [lists] = await pool.query(
       `SELECT sl.* FROM shopping_lists sl 
-       JOIN user_apartments ua ON sl.apartment_id = ua.apartment_id 
-       WHERE sl.id = ? AND ua.user_id = ?`,
+      JOIN user_apartments ua ON sl.apartment_id = ua.apartment_id
+      WHERE sl.id = ? AND ua.user_id = ?`,
       [req.params.id, req.user.id]
     );
     
@@ -323,102 +356,112 @@ router.put('/:id', verifyToken, async (req, res) => {
       return res.status(404).json({ message: 'Einkaufsliste nicht gefunden oder keine Berechtigung' });
     }
     
-    const { name, date } = req.body;
+    const { name, date, archived } = req.body;
+    const updateData = {};
     
-    // Aktualisierungslogik verbessert
+    if (name !== undefined) updateData.name = name;
+    if (date !== undefined) updateData.date = date;
+    if (archived !== undefined) updateData.archived = archived ? 1 : 0;
+    
+    // Nur aktualisieren, wenn es tatsächlich Änderungen gibt
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ message: 'Keine Daten zum Aktualisieren angegeben' });
+    }
+    
+    // Setze-Klauseln dynamisch generieren
+    const setClause = Object.entries(updateData)
+      .map(([key, _]) => `${key} = ?`)
+      .join(', ');
+    
+    // Werte für die SQL-Abfrage
+    const values = [...Object.values(updateData), req.params.id];
+    
     await pool.query(
-      'UPDATE shopping_lists SET name = ?, date = ? WHERE id = ?',
-      [name, date || lists[0].date, req.params.id]
+      `UPDATE shopping_lists SET ${setClause} WHERE id = ?`,
+      values
     );
     
-    // Holen der aktualisierten Liste
-    const [updatedList] = await pool.query('SELECT * FROM shopping_lists WHERE id = ?', [req.params.id]);
+    // Aktualisierte Liste abrufen
+    const [updatedList] = await pool.query(
+      'SELECT * FROM shopping_lists WHERE id = ?',
+      [req.params.id]
+    );
     
-    res.json({ 
-      message: 'Einkaufsliste erfolgreich aktualisiert',
-      ...updatedList[0]
+    const [items] = await pool.query(
+      'SELECT * FROM shopping_items WHERE list_id = ?',
+      [req.params.id]
+    );
+    
+    res.json({
+      ...updatedList[0],
+      items
     });
   } catch (error) {
     console.error('Fehler beim Aktualisieren der Einkaufsliste:', error);
-    res.status(500).json({ message: 'Serverfehler beim Aktualisieren der Einkaufsliste' });
+    res.status(500).json({ message: 'Serverfehler' });
   }
 });
 
-// Spezieller Endpunkt zum Aktualisieren des Listennamens basierend auf Apartment-Berechtigung
-router.patch('/apartment/:apartmentId/list/:listId/name', verifyToken, async (req, res) => {
+// Eine Einkaufsliste löschen
+router.delete('/apartment/:apartmentId/list/:id', verifyToken, async (req, res) => {
+  const connection = await pool.getConnection();
+  
   try {
-    const { apartmentId, listId } = req.params;
-    const { name } = req.body;
+    await connection.beginTransaction();
     
-    if (!name || typeof name !== 'string' || name.trim() === '') {
-      return res.status(400).json({ message: 'Listenname muss angegeben werden' });
-    }
+    const { apartmentId, id } = req.params;
     
-    // Pru00fcfen, ob der Benutzer Zugriff auf das Apartment hat
-    const [apartments] = await pool.query(
+    // Prüfen, ob der Benutzer Zugriff auf das Apartment hat
+    const [apartments] = await connection.query(
       'SELECT * FROM user_apartments WHERE apartment_id = ? AND user_id = ?',
       [apartmentId, req.user.id]
     );
     
     if (apartments.length === 0) {
-      return res.status(403).json({ message: 'Keine Berechtigung fu00fcr dieses Apartment' });
+      await connection.rollback();
+      return res.status(403).json({ message: 'Keine Berechtigung für dieses Apartment' });
     }
     
-    // Pru00fcfen, ob die Liste existiert und zum angegebenen Apartment gehu00f6rt
-    const [lists] = await pool.query(
+    // Prüfen, ob die Liste existiert und zum angegebenen Apartment gehört
+    const [lists] = await connection.query(
       'SELECT * FROM shopping_lists WHERE id = ? AND apartment_id = ?',
-      [listId, apartmentId]
+      [id, apartmentId]
     );
     
     if (lists.length === 0) {
-      return res.status(404).json({ message: 'Einkaufsliste nicht gefunden oder gehu00f6rt nicht zum angegebenen Apartment' });
+      await connection.rollback();
+      return res.status(404).json({ message: 'Einkaufsliste nicht gefunden' });
     }
     
-    // Listenname aktualisieren
-    await pool.query(
-      'UPDATE shopping_lists SET name = ? WHERE id = ?',
-      [name.trim(), listId]
+    // Alle Elemente der Liste löschen
+    await connection.query(
+      'DELETE FROM shopping_items WHERE list_id = ?',
+      [id]
     );
     
-    // Aktualisierte Liste zuru00fcckgeben
-    const [updatedList] = await pool.query('SELECT * FROM shopping_lists WHERE id = ?', [listId]);
+    // Die Liste selbst löschen
+    await connection.query(
+      'DELETE FROM shopping_lists WHERE id = ?',
+      [id]
+    );
     
-    console.log(`Liste ${listId} wurde umbenannt zu '${name.trim()}' von Benutzer ${req.user.id}`);
+    await connection.commit();
     
-    res.json({
-      message: 'Listenname erfolgreich aktualisiert',
-      ...updatedList[0]
-    });
+    res.json({ message: 'Einkaufsliste erfolgreich gelöscht' });
   } catch (error) {
-    console.error('Fehler beim Aktualisieren des Listennamens:', error);
-    res.status(500).json({ message: 'Serverfehler beim Aktualisieren des Listennamens' });
+    try {
+      await connection.rollback();
+    } catch (rollbackError) {
+      console.error('Fehler beim Rollback:', rollbackError);
+    }
+    console.error('Fehler beim Löschen der Einkaufsliste:', error);
+    res.status(500).json({ message: 'Serverfehler' });
+  } finally {
+    connection.release();
   }
 });
 
-// Einkaufsliste lu00f6schen
-router.delete('/:id', verifyToken, async (req, res) => {
-  try {
-    // Pru00fcfen, ob Liste existiert und dem Benutzer gehu00f6rt
-    const [lists] = await pool.query(
-      'SELECT * FROM shopping_lists WHERE id = ? AND user_id = ?',
-      [req.params.id, req.user.id]
-    );
-    
-    if (lists.length === 0) {
-      return res.status(404).json({ message: 'Einkaufsliste nicht gefunden oder keine Berechtigung' });
-    }
-    
-    // Lu00f6schen der Liste (Artikel werden durch ON DELETE CASCADE automatisch gelu00f6scht)
-    await pool.query('DELETE FROM shopping_lists WHERE id = ?', [req.params.id]);
-    
-    res.json({ message: 'Einkaufsliste erfolgreich gelu00f6scht' });
-  } catch (error) {
-    console.error('Fehler beim Hinzufügen des Artikels:', error);
-    res.status(500).json({ message: 'Serverfehler beim Hinzufügen des Artikels' });
-  }
-});
-
-// Neues Element zu einer Einkaufsliste hinzufügen (Legacy - zur Abwärtskompatibilität)
+// Item zu einer Liste hinzufügen
 router.post('/:id/items', verifyToken, async (req, res) => {
   try {
     // Benutzer-Apartments abrufen
@@ -430,27 +473,49 @@ router.post('/:id/items', verifyToken, async (req, res) => {
     const apartmentIds = userApartments.map(ua => ua.apartment_id);
     
     if (apartmentIds.length === 0) {
-      return res.status(404).json({ message: 'Kein Apartment für diesen Benutzer gefunden' });
+      return res.status(403).json({ message: 'Keine Berechtigung' });
     }
     
-    // Prüfen, ob Liste existiert und zu einem Apartment des Benutzers gehört
+    // Prüfen, ob die Liste zu einem der Apartments des Benutzers gehört
     const [lists] = await pool.query(
-      `SELECT * FROM shopping_lists WHERE id = ? AND apartment_id IN (${apartmentIds.map(() => '?').join(',')})`,
-      [req.params.id, ...apartmentIds]
+      'SELECT * FROM shopping_lists WHERE id = ? AND apartment_id IN (?)',
+      [req.params.id, apartmentIds]
     );
     
     if (lists.length === 0) {
       return res.status(404).json({ message: 'Einkaufsliste nicht gefunden oder keine Berechtigung' });
     }
     
-    const { name, quantity, category, completed } = req.body;
+    const { name, quantity, category, checked } = req.body;
     
-    const [result] = await pool.query(
-      'INSERT INTO shopping_items (name, quantity, category, checked, list_id) VALUES (?, ?, ?, ?, ?)',
-      [name, quantity || '', category || 'sonstiges', completed || false, req.params.id]
+    // Prüfe, ob der Artikel bereits existiert (gleicher Name und Kategorie)
+    const [existingItems] = await pool.query(
+      'SELECT * FROM shopping_items WHERE list_id = ? AND name = ? AND category = ?',
+      [req.params.id, name, category || 'sonstiges']
     );
     
-    // Neu erstelltes Item mit vollständigen Daten zurückgeben
+    if (existingItems.length > 0) {
+      // Ein Artikel mit diesem Namen und dieser Kategorie existiert bereits,
+      // also aktualisieren wir ihn stattdessen
+      await pool.query(
+        'UPDATE shopping_items SET quantity = ?, checked = ? WHERE id = ?',
+        [quantity || '', checked ? 1 : 0, existingItems[0].id]
+      );
+      
+      const [updatedItem] = await pool.query(
+        'SELECT * FROM shopping_items WHERE id = ?',
+        [existingItems[0].id]
+      );
+      
+      return res.json(updatedItem[0]);
+    }
+    
+    // Ansonsten neuen Artikel hinzufügen
+    const [result] = await pool.query(
+      'INSERT INTO shopping_items (name, quantity, category, checked, list_id) VALUES (?, ?, ?, ?, ?)',
+      [name, quantity || '', category || 'sonstiges', checked ? 1 : 0, req.params.id]
+    );
+    
     const [newItem] = await pool.query(
       'SELECT * FROM shopping_items WHERE id = ?',
       [result.insertId]
@@ -459,56 +524,12 @@ router.post('/:id/items', verifyToken, async (req, res) => {
     res.status(201).json(newItem[0]);
   } catch (error) {
     console.error('Fehler beim Hinzufügen des Artikels:', error);
-    res.status(500).json({ message: 'Serverfehler beim Hinzufügen des Artikels' });
+    res.status(500).json({ message: 'Serverfehler' });
   }
 });
 
-// Einkaufsliste löschen
-router.delete('/apartment/:apartmentId/list/:listId', verifyToken, async (req, res) => {
-  try {
-    const { apartmentId, listId } = req.params;
-    
-    // Prüfen, ob der Benutzer Zugriff auf das Apartment hat
-    const [apartments] = await pool.query(
-      'SELECT * FROM user_apartments WHERE apartment_id = ? AND user_id = ?',
-      [apartmentId, req.user.id]
-    );
-    
-    if (apartments.length === 0) {
-      return res.status(403).json({ message: 'Keine Berechtigung für dieses Apartment' });
-    }
-    
-    // Prüfen, ob die Liste existiert und zu diesem Apartment gehört
-    const [lists] = await pool.query(
-      'SELECT * FROM shopping_lists WHERE id = ? AND apartment_id = ?',
-      [listId, apartmentId]
-    );
-    
-    if (lists.length === 0) {
-      return res.status(404).json({ message: 'Einkaufsliste nicht gefunden' });
-    }
-    
-    // Erst alle Items der Liste löschen
-    await pool.query(
-      'DELETE FROM shopping_items WHERE list_id = ?',
-      [listId]
-    );
-    
-    // Dann die Liste selbst löschen
-    await pool.query(
-      'DELETE FROM shopping_lists WHERE id = ?',
-      [listId]
-    );
-    
-    res.json({ message: 'Einkaufsliste erfolgreich gelöscht' });
-  } catch (error) {
-    console.error('Fehler beim Löschen der Einkaufsliste:', error);
-    res.status(500).json({ message: 'Serverfehler beim Löschen der Einkaufsliste' });
-  }
-});
-
-// Artikelstatus ändern (gekauft/nicht gekauft)
-router.patch('/:listId/items/:itemId/toggle', verifyToken, async (req, res) => {
+// Item einer Liste aktualisieren
+router.put('/:listId/items/:itemId', verifyToken, async (req, res) => {
   try {
     // Benutzer-Apartments abrufen
     const [userApartments] = await pool.query(
@@ -519,20 +540,20 @@ router.patch('/:listId/items/:itemId/toggle', verifyToken, async (req, res) => {
     const apartmentIds = userApartments.map(ua => ua.apartment_id);
     
     if (apartmentIds.length === 0) {
-      return res.status(404).json({ message: 'Kein Apartment für diesen Benutzer gefunden' });
+      return res.status(403).json({ message: 'Keine Berechtigung' });
     }
     
-    // Prüfen, ob Liste existiert und zu einem Apartment des Benutzers gehört
+    // Prüfen, ob die Liste zu einem der Apartments des Benutzers gehört
     const [lists] = await pool.query(
-      `SELECT * FROM shopping_lists WHERE id = ? AND apartment_id IN (${apartmentIds.map(() => '?').join(',')})`,
-      [req.params.listId, ...apartmentIds]
+      'SELECT * FROM shopping_lists WHERE id = ? AND apartment_id IN (?)',
+      [req.params.listId, apartmentIds]
     );
     
     if (lists.length === 0) {
       return res.status(404).json({ message: 'Einkaufsliste nicht gefunden oder keine Berechtigung' });
     }
     
-    // Aktuellen Status des Artikels abrufen
+    // Prüfen, ob das Item zur Liste gehört
     const [items] = await pool.query(
       'SELECT * FROM shopping_items WHERE id = ? AND list_id = ?',
       [req.params.itemId, req.params.listId]
@@ -542,24 +563,46 @@ router.patch('/:listId/items/:itemId/toggle', verifyToken, async (req, res) => {
       return res.status(404).json({ message: 'Artikel nicht gefunden' });
     }
     
-    const newStatus = !items[0].checked;
+    const { name, quantity, category, checked } = req.body;
+    const updateData = {};
+    
+    if (name !== undefined) updateData.name = name;
+    if (quantity !== undefined) updateData.quantity = quantity;
+    if (category !== undefined) updateData.category = category;
+    if (checked !== undefined) updateData.checked = checked ? 1 : 0;
+    
+    // Nur aktualisieren, wenn es tatsächlich Änderungen gibt
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ message: 'Keine Daten zum Aktualisieren angegeben' });
+    }
+    
+    // Setze-Klauseln dynamisch generieren
+    const setClause = Object.entries(updateData)
+      .map(([key, _]) => `${key} = ?`)
+      .join(', ');
+    
+    // Werte für die SQL-Abfrage
+    const values = [...Object.values(updateData), req.params.itemId];
     
     await pool.query(
-      'UPDATE shopping_items SET checked = ? WHERE id = ?',
-      [newStatus, req.params.itemId]
+      `UPDATE shopping_items SET ${setClause} WHERE id = ?`,
+      values
     );
     
-    res.json({ 
-      message: `Artikel als ${newStatus ? 'gekauft' : 'nicht gekauft'} markiert`,
-      checked: newStatus
-    });
+    // Aktualisiertes Item abrufen
+    const [updatedItem] = await pool.query(
+      'SELECT * FROM shopping_items WHERE id = ?',
+      [req.params.itemId]
+    );
+    
+    res.json(updatedItem[0]);
   } catch (error) {
-    console.error('Fehler beim u00c4ndern des Artikelstatus:', error);
-    res.status(500).json({ message: 'Serverfehler beim u00c4ndern des Artikelstatus' });
+    console.error('Fehler beim Aktualisieren des Artikels:', error);
+    res.status(500).json({ message: 'Serverfehler' });
   }
 });
 
-// Artikel lu00f6schen
+// Item aus einer Liste löschen
 router.delete('/:listId/items/:itemId', verifyToken, async (req, res) => {
   try {
     // Benutzer-Apartments abrufen
@@ -571,73 +614,39 @@ router.delete('/:listId/items/:itemId', verifyToken, async (req, res) => {
     const apartmentIds = userApartments.map(ua => ua.apartment_id);
     
     if (apartmentIds.length === 0) {
-      return res.status(404).json({ message: 'Kein Apartment für diesen Benutzer gefunden' });
+      return res.status(403).json({ message: 'Keine Berechtigung' });
     }
     
-    // Prüfen, ob Liste existiert und zu einem Apartment des Benutzers gehört
+    // Prüfen, ob die Liste zu einem der Apartments des Benutzers gehört
     const [lists] = await pool.query(
-      `SELECT * FROM shopping_lists WHERE id = ? AND apartment_id IN (${apartmentIds.map(() => '?').join(',')})`,
-      [req.params.listId, ...apartmentIds]
+      'SELECT * FROM shopping_lists WHERE id = ? AND apartment_id IN (?)',
+      [req.params.listId, apartmentIds]
     );
     
     if (lists.length === 0) {
       return res.status(404).json({ message: 'Einkaufsliste nicht gefunden oder keine Berechtigung' });
     }
     
-    await pool.query(
-      'DELETE FROM shopping_items WHERE id = ? AND list_id = ?',
+    // Prüfen, ob das Item zur Liste gehört
+    const [items] = await pool.query(
+      'SELECT * FROM shopping_items WHERE id = ? AND list_id = ?',
       [req.params.itemId, req.params.listId]
+    );
+    
+    if (items.length === 0) {
+      return res.status(404).json({ message: 'Artikel nicht gefunden' });
+    }
+    
+    // Item löschen
+    await pool.query(
+      'DELETE FROM shopping_items WHERE id = ?',
+      [req.params.itemId]
     );
     
     res.json({ message: 'Artikel erfolgreich gelöscht' });
   } catch (error) {
     console.error('Fehler beim Löschen des Artikels:', error);
-    res.status(500).json({ message: 'Serverfehler beim Löschen des Artikels' });
-  }
-});
-
-// Neues Element zu einer Apartment-spezifischen Einkaufsliste hinzufügen
-router.post('/apartment/:apartmentId/list/:listId/items', verifyToken, async (req, res) => {
-  try {
-    const { apartmentId, listId } = req.params;
-    
-    // Prüfen, ob der Benutzer Zugriff auf das Apartment hat
-    const [apartments] = await pool.query(
-      'SELECT * FROM user_apartments WHERE apartment_id = ? AND user_id = ?',
-      [apartmentId, req.user.id]
-    );
-    
-    if (apartments.length === 0) {
-      return res.status(403).json({ message: 'Keine Berechtigung für dieses Apartment' });
-    }
-    
-    // Prüfen, ob die Liste existiert und zum Apartment gehört
-    const [lists] = await pool.query(
-      'SELECT * FROM shopping_lists WHERE id = ? AND apartment_id = ?',
-      [listId, apartmentId]
-    );
-    
-    if (lists.length === 0) {
-      return res.status(404).json({ message: 'Einkaufsliste nicht gefunden oder gehört nicht zum angegebenen Apartment' });
-    }
-    
-    const { name, quantity, category, completed } = req.body;
-    
-    const [result] = await pool.query(
-      'INSERT INTO shopping_items (name, quantity, category, checked, list_id) VALUES (?, ?, ?, ?, ?)',
-      [name, quantity || '', category || 'sonstiges', completed || false, listId]
-    );
-    
-    // Neu erstelltes Item mit vollständigen Daten zurückgeben
-    const [newItem] = await pool.query(
-      'SELECT * FROM shopping_items WHERE id = ?',
-      [result.insertId]
-    );
-    
-    res.status(201).json(newItem[0]);
-  } catch (error) {
-    console.error('Fehler beim Hinzufügen des Artikels:', error);
-    res.status(500).json({ message: 'Serverfehler beim Hinzufügen des Artikels' });
+    res.status(500).json({ message: 'Serverfehler' });
   }
 });
 
