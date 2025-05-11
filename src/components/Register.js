@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { FiLock, FiMail, FiUser, FiEye, FiEyeOff } from 'react-icons/fi';
+import React, { useState, useEffect } from 'react';
+import { FiLock, FiMail, FiUser, FiEye, FiEyeOff, FiCheck, FiX } from 'react-icons/fi';
 import { authService } from '../services/api';
 
 const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
@@ -12,6 +12,13 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [passwordStrength, setPasswordStrength] = useState(0);
+  const [passwordFeedback, setPasswordFeedback] = useState({
+    minLength: false,
+    hasLetter: false,
+    hasNumber: false,
+    hasSpecial: false
+  });
   
   // Testdaten für die Entwicklung - zum einfachen Ausfüllen des Formulars
   const fillWithTestData = () => {
@@ -23,9 +30,42 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
     });
   };
 
+  // Prüft die Stärke des Passworts und aktualisiert Feedback
+  const checkPasswordStrength = (password) => {
+    // Passwort-Kriterien prüfen
+    const criteria = {
+      minLength: password.length >= 6,
+      hasLetter: /[a-zA-Z]/.test(password),
+      hasNumber: /[0-9]/.test(password),
+      hasSpecial: /[^a-zA-Z0-9]/.test(password)
+    };
+    
+    setPasswordFeedback(criteria);
+    
+    // Passwortstärke berechnen (0-100)
+    let strength = 0;
+    
+    if (criteria.minLength) strength += 25;
+    if (criteria.hasLetter) strength += 25;
+    if (criteria.hasNumber) strength += 25;
+    if (criteria.hasSpecial) strength += 25;
+    
+    // Zusätzliche Punkte für längere Passwörter
+    if (password.length > 8) strength += 10;
+    if (password.length > 12) strength += 10;
+    
+    // Maximal 100 Punkte
+    setPasswordStrength(Math.min(100, strength));
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({...formData, [name]: value });
+    
+    // Bei Änderung des Passworts die Stärke prüfen
+    if (name === 'password') {
+      checkPasswordStrength(value);
+    }
   };
 
   const handleRegister = async (e) => {
@@ -44,7 +84,7 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
       if (!formData.password) {
         throw new Error('Bitte geben Sie ein Passwort ein');
       }
-      if (formData.password.length < 6) {
+      if (!passwordFeedback.minLength) {
         throw new Error('Das Passwort muss mindestens 6 Zeichen lang sein');
       }
       
@@ -97,9 +137,14 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
       <div className="bg-shape bg-shape-2" data-speed="0.05"></div>
       <div className="bg-shape bg-shape-3" data-speed="0.02"></div>
       
-      <div className="card fadeIn" style={{ maxWidth: '480px', margin: '0 auto', display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '100vh', paddingTop: '0', paddingBottom: '0' }}>
-        <div style={{ padding: '30px' }}>
-          <h1 style={{ marginBottom: '30px', textAlign: 'center' }}>Registrieren</h1>
+      <div className="card login-card fadeIn" style={{ 
+        maxWidth: '400px', 
+        margin: '2rem auto', 
+        borderRadius: '12px',
+        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)' 
+      }}>
+        <div style={{ padding: '25px' }}>
+          <h1 style={{ marginBottom: '20px', textAlign: 'center', fontSize: '1.8rem' }}>Registrieren</h1>
           
           <form onSubmit={handleRegister}>
             <div className="mb-3">
@@ -153,7 +198,122 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
                   required
                   style={{ paddingRight: '40px' }}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: '10px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '18px',
+                    color: 'var(--text-secondary)'
+                  }}
+                >
+                  {showPassword ? <FiEyeOff /> : <FiEye />}
+                </button>
               </div>
+              
+              {/* Passwort-Stärke-Anzeige */}
+              {formData.password && (
+                <div style={{ marginTop: '10px' }}>
+                  {/* Fortschrittsbalken für Passwortstärke */}
+                  <div style={{ 
+                    height: '6px', 
+                    borderRadius: '3px', 
+                    background: '#e0e0e0', 
+                    marginBottom: '8px',
+                    overflow: 'hidden'
+                  }}>
+                    <div style={{ 
+                      height: '100%', 
+                      width: `${passwordStrength}%`, 
+                      background: passwordStrength < 40 ? '#f44336' : 
+                               passwordStrength < 70 ? '#ff9800' : 
+                               '#4caf50',
+                      transition: 'width 0.3s, background 0.3s'
+                    }} />
+                  </div>
+                  
+                  {/* Textanzeige für Passwortstärke */}
+                  <div style={{ 
+                    fontSize: '12px', 
+                    display: 'flex', 
+                    justifyContent: 'space-between'
+                  }}>
+                    <span style={{ 
+                      color: passwordStrength < 40 ? '#f44336' : 
+                             passwordStrength < 70 ? '#ff9800' : 
+                             '#4caf50',
+                      fontWeight: '500'
+                    }}>
+                      {passwordStrength < 40 ? 'Schwach' : 
+                       passwordStrength < 70 ? 'Mittel' : 
+                       'Stark'}
+                    </span>
+                    <span style={{ color: 'var(--text-secondary)' }}>
+                      {passwordStrength}%
+                    </span>
+                  </div>
+                  
+                  {/* Kriterien-Liste */}
+                  <div style={{ marginTop: '10px', fontSize: '13px' }}>
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      marginBottom: '4px',
+                      color: passwordFeedback.minLength ? '#4caf50' : 'var(--text-secondary)'
+                    }}>
+                      {passwordFeedback.minLength ? 
+                        <FiCheck style={{ marginRight: '6px', strokeWidth: 3 }} /> : 
+                        <FiX style={{ marginRight: '6px', strokeWidth: 3 }} />
+                      }
+                      Mindestens 6 Zeichen
+                    </div>
+                    
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      marginBottom: '4px',
+                      color: passwordFeedback.hasLetter ? '#4caf50' : 'var(--text-secondary)'
+                    }}>
+                      {passwordFeedback.hasLetter ? 
+                        <FiCheck style={{ marginRight: '6px', strokeWidth: 3 }} /> : 
+                        <FiX style={{ marginRight: '6px', strokeWidth: 3 }} />
+                      }
+                      Mindestens ein Buchstabe
+                    </div>
+                    
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      marginBottom: '4px',
+                      color: passwordFeedback.hasNumber ? '#4caf50' : 'var(--text-secondary)'
+                    }}>
+                      {passwordFeedback.hasNumber ? 
+                        <FiCheck style={{ marginRight: '6px', strokeWidth: 3 }} /> : 
+                        <FiX style={{ marginRight: '6px', strokeWidth: 3 }} />
+                      }
+                      Mindestens eine Zahl
+                    </div>
+                    
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center',
+                      color: passwordFeedback.hasSpecial ? '#4caf50' : 'var(--text-secondary)'
+                    }}>
+                      {passwordFeedback.hasSpecial ? 
+                        <FiCheck style={{ marginRight: '6px', strokeWidth: 3 }} /> : 
+                        <FiX style={{ marginRight: '6px', strokeWidth: 3 }} />
+                      }
+                      Mindestens ein Sonderzeichen
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
             
             <div className="mb-3">
@@ -161,16 +321,36 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
                 <FiLock style={{ marginRight: '8px' }} />
                 Passwort bestätigen
               </label>
-              <input 
-                id="confirmPassword"
-                type={showPassword ? 'text' : 'password'} 
-                name="confirmPassword" 
-                placeholder="Passwort wiederholen" 
-                className="input"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                required
-              />
+              <div style={{ position: 'relative' }}>
+                <input 
+                  id="confirmPassword"
+                  type={showPassword ? 'text' : 'password'} 
+                  name="confirmPassword" 
+                  placeholder="Passwort wiederholen" 
+                  className="input"
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  required
+                  style={{ paddingRight: '40px' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: '10px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '18px',
+                    color: 'var(--text-secondary)'
+                  }}
+                >
+                  {showPassword ? <FiEyeOff /> : <FiEye />}
+                </button>
+              </div>
               {formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword && (
                 <p style={{ color: 'var(--error)', fontSize: '12px', marginTop: '4px' }}>
                   Die Passwörter stimmen nicht überein.
@@ -178,38 +358,40 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
               )}
             </div>
             
+            {/* Fehleranzeige */}
+            {error && (
+              <div style={{ 
+                color: 'var(--color-error)', 
+                background: 'rgba(255, 0, 0, 0.05)', 
+                padding: '10px', 
+                borderRadius: '6px',
+                marginBottom: '15px',
+                fontSize: '14px'
+              }}>
+                {error}
+              </div>
+            )}
+            
             <button 
               type="submit" 
-              className="button" 
-              style={{ width: '100%' }}
+              className="button primary full-width"
               disabled={loading || (formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword)}
             >
-              {loading ? 
-                'Registrieren...' : 
-                <>
-                  <FiUser /> Registrieren
-                </>
-              }
+              {loading ? 'Registrieren...' : 'Registrieren'}
             </button>
           </form>
           
           <div style={{ textAlign: 'center', marginTop: '20px' }}>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
               Bereits registriert? 
-              <button 
-                onClick={onSwitchToLogin} 
-                style={{ 
-                  background: 'none', 
-                  border: 'none', 
-                  color: 'var(--primary)', 
-                  cursor: 'pointer',
-                  padding: '0 5px',
-                  fontWeight: '500'
-                }}
-              >
-                Anmelden
-              </button>
             </p>
+            <button 
+              onClick={onSwitchToLogin}
+              className="button button-secondary" 
+              style={{ marginTop: '10px', width: '100%' }}
+            >
+              Anmelden
+            </button>
           </div>
         </div>
       </div>

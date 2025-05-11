@@ -41,6 +41,47 @@ const Dashboard = ({
     }
   }, [apartments, selectedApartment, setSelectedApartment]);
   
+  // Nach Benachrichtigungserlaubnis fragen, NACHDEM der Benutzer sich angemeldet hat
+  useEffect(() => {
+    // Nur ausführen, wenn der Benutzer bereits angemeldet ist und Apartments geladen wurden
+    // Dies stellt sicher, dass wir nach der Authentifizierung sind
+    const requestNotificationPermission = async () => {
+      // Nur fragen, wenn die Berechtigung noch nicht erteilt oder verweigert wurde
+      if (('Notification' in window) && Notification.permission === 'default') {
+        console.log('Frage nach Benachrichtigungsberechtigung nach erfolgreicher Anmeldung...');
+        
+        try {
+          // Kurze Verzögerung, damit die Benutzeroberfläche zuerst geladen wird
+          setTimeout(async () => {
+            const permission = await Notification.requestPermission();
+            console.log('Benachtigungsberechtigung:', permission);
+            setNotificationStatus(permission);
+            
+            // Bei Erfolg Push abonnieren
+            if (permission === 'granted') {
+              try {
+                const notificationService = (await import('../services/notificationService')).default;
+                // Wenn ein Apartment ausgewählt ist, verwende dessen ID
+                const apartmentId = selectedApartment ? selectedApartment.id : null;
+                await notificationService.subscribeToPush(apartmentId);
+                console.log('Push-Benachrichtigungen erfolgreich abonniert');
+              } catch (subError) {
+                console.warn('Konnte Push nicht abonnieren:', subError);
+              }
+            }
+          }, 1500); // 1,5 Sekunden Verzögerung für bessere UX
+        } catch (error) {
+          console.error('Fehler bei der Benachrichtigungsanfrage:', error);
+        }
+      }
+    };
+    
+    // Nur ausführen, wenn Apartments geladen wurden (Benutzer ist angemeldet)
+    if (apartments.length > 0) {
+      requestNotificationPermission();
+    }
+  }, [apartments, selectedApartment]);  // Abhängigkeit von apartments = wird erst nach Anmeldung ausgeführt
+  
   // Dashboard-Daten laden, wenn sich das ausgewählte Apartment ändert
   useEffect(() => {
     // Daten nur laden, wenn ein Apartment ausgewählt ist

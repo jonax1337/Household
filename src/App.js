@@ -33,40 +33,20 @@ function App() {
   const [inviteCode, setInviteCode] = useState('');
   const [currentUser, setCurrentUser] = useState(null);
 
-  // Sofort nach Benachrichtigungserlaubnis fragen
+  // Service Worker registrieren ohne Benachrichtigungsanfrage
   useEffect(() => {
-    // Service Worker registrieren und Push-Berechtigung direkt anfragen
-    const initializeServiceWorkerAndNotifications = async () => {
+    const initializeServiceWorker = async () => {
       try {
-        // Service Worker registrieren
+        // Nur Service Worker registrieren ohne Benachrichtigungsanfrage
         const registration = await registerServiceWorker();
         console.log('Service Worker ist registriert:', registration);
-        
-        // Sofort nach Benachrichtigungserlaubnis fragen, wenn nicht bereits erteilt
-        if (('Notification' in window) && Notification.permission === 'default') {
-          console.log('Frage sofort nach Benachrichtigungserlaubnis...');
-          try {
-            const permission = await Notification.requestPermission();
-            console.log('Benachtigungsberechtigung:', permission);
-            
-            // Bei Erfolg Push abonnieren, wenn der Benutzer angemeldet ist
-            if (permission === 'granted' && localStorage.getItem('token')) {
-              const PushManager = (await import('./services/notificationService')).default;
-              PushManager.subscribeToPush().catch(err => 
-                console.warn('Konnte Push nicht abonnieren:', err)
-              );
-            }
-          } catch (error) {
-            console.error('Fehler bei der Benachrichtigungsanfrage:', error);
-          }
-        }
       } catch (error) {
         console.error('Fehler bei der Service Worker Initialisierung:', error);
       }
     };
     
-    // Service Worker und Benachrichtigungen initialisieren
-    initializeServiceWorkerAndNotifications();
+    // Nur Service Worker initialisieren
+    initializeServiceWorker();
   }, []); // Leeres Dependency-Array = einmalig beim Laden
 
   // Prüfen, ob der Benutzer bereits angemeldet ist (Token im localStorage)
