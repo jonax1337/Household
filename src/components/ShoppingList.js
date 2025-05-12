@@ -242,9 +242,19 @@ const ShoppingList = ({ selectedApartment }) => {
         setLoading(true);
         const listItems = await shoppingService.getListItems(apartmentId, activeList);
         
+        console.log('Geladene Items vom Server:', listItems);
+        
+        // Eindeutige Client-Indizes hinzufu00fcgen, um React-Rendering zu stabilisieren
+        const itemsWithClientIndex = listItems.map((item, index) => ({
+          ...item,
+          _clientIndex: index  // Jedes Item bekommt einen eindeutigen Index
+        }));
+        
         // Trennen von aktiven und archivierten Items
-        const active = listItems.filter(item => !item.completed);
-        const archived = listItems.filter(item => item.completed);
+        const active = itemsWithClientIndex.filter(item => !item.completed);
+        const archived = itemsWithClientIndex.filter(item => item.completed);
+        
+        console.log('Aktive Items mit clientIndex:', active);
         
         setItems(active);
         setArchivedItems(archived);
@@ -421,24 +431,50 @@ const ShoppingList = ({ selectedApartment }) => {
     setNewItem({ name: '', quantity: '1', category: newItem.category, customCategory: '' });
     
     try {
+      // Debugging-Info: Log vorhandene Items
+      console.log('Vorhandene Items:', items.map(item => ({ name: item.name, id: item.id })));
+      
+      // Erstelle das neue Item ohne Namenänderungen
       const createItemData = {
-        name: currentItemData.name,
+        name: currentItemData.name,  // Name unverändert übernehmen
         quantity: currentItemData.quantity || '1',
         category: finalCategory,
         completed: false
       };
       
-      // Warten auf API-Antwort bevor wir den State aktualisieren
-      const createdItem = await shoppingService.addItem(apartmentId, activeList, createItemData);
+      console.log('Neues Item wird erstellt:', createItemData);
       
-      // Nur nach erfolgreicher API-Antwort den State aktualisieren
-      // mit dem vom Server zurückgegebenen Objekt (inkl. korrekter ID)
+      // Generiere eine eindeutige temporäre ID für die optimistische UI-Aktualisierung
+      const tempId = `temp-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+      
+      // Optimistische UI-Aktualisierung mit temporärer ID
+      const tempItem = {
+        ...createItemData,
+        id: tempId,
+        _clientIndex: items.length  // Hinzufügen eines internen Index für Stabilität der Keys
+      };
+      
+      // Sofortige UI-Aktualisierung mit temporärer ID für bessere User Experience
+      setItems(currentItems => [...currentItems, tempItem]);
+      
+      // API-Aufruf ausführen
+      const createdItem = await shoppingService.addItem(apartmentId, activeList, createItemData);
+      console.log('Vom Server erstelltes Item:', createdItem);
+      
+      // Nach erfolgreicher API-Antwort den State mit der korrekten Server-ID aktualisieren
       if (createdItem && createdItem.id) {
-        setItems(currentItems => [...currentItems, createdItem]);
+        setItems(currentItems => {
+          // Ersetze das temporäre Item mit dem vom Server zurückgegebenen,
+          // aber behalte den clientIndex bei
+          return currentItems.map(item => 
+            item.id === tempId ? {...createdItem, _clientIndex: item._clientIndex} : item
+          );
+        });
       }
     } catch (error) {
       console.error('Fehler beim Hinzufügen des Items:', error);
-      // Hier könnte man eine Fehlermeldung für den Benutzer anzeigen
+      // Bei Fehler das temporäre Item entfernen
+      setItems(currentItems => currentItems.filter(item => !item.id.startsWith('temp-')));
     }
   };
 
@@ -874,24 +910,33 @@ const ShoppingList = ({ selectedApartment }) => {
                   <h4 style={{ ...styles.categoryHeader, color: 'var(--text-secondary)' }}>
                     Erledigte Produkte
                   </h4>
-                  {archivedItems.map(item => (
-                    <div key={item.id} className={`shopping-item completed`} style={{ marginBottom: '10px' }}
-                      onTouchStart={() => handleItemTouchStart(item)}
-                      onTouchEnd={handleItemTouchEnd}
-                      onTouchMove={handleItemTouchMove}
-                    >
-                      <div className="item-checkbox" onClick={() => toggleItemStatus(item.id)}>
-                        <FiCheck />
+                  {archivedItems.map((item, index) => {
+                    // Verwende eine deterministische eindeutige ID basierend auf clientIndex oder array index
+                    const uniqueKey = item._clientIndex !== undefined
+                      ? `${item.id}-${item._clientIndex}` 
+                      : `${item.id}-archived-${index}`;
+                      
+                    console.log(`Archiviertes Item: ${item.name}, ID: ${item.id}, uniqueKey: ${uniqueKey}`);
+                      
+                    return (
+                      <div key={uniqueKey} className={`shopping-item completed`} style={{ marginBottom: '10px' }}
+                        onTouchStart={() => handleItemTouchStart(item)}
+                        onTouchEnd={handleItemTouchEnd}
+                        onTouchMove={handleItemTouchMove}
+                      >
+                        <div className="item-checkbox" onClick={() => toggleItemStatus(item.id)}>
+                          <FiCheck />
+                        </div>
+                        <div className="item-content">
+                          <div className="item-name" style={{ color: 'var(--text-primary)' }}>{item.name}</div>
+                          <div className="item-quantity" style={{ color: 'var(--text-secondary)' }}>{item.quantity}</div>
+                        </div>
+                        <button className="item-delete" onClick={() => deleteItem(item.id)}>
+                          <FiTrash2 size={16} />
+                        </button>
                       </div>
-                      <div className="item-content">
-                        <div className="item-name" style={{ color: 'var(--text-primary)' }}>{item.name}</div>
-                        <div className="item-quantity" style={{ color: 'var(--text-secondary)' }}>{item.quantity}</div>
-                      </div>
-                      <button className="item-delete" onClick={() => deleteItem(item.id)}>
-                        <FiTrash2 size={16} />
-                      </button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )
             ) : (
@@ -962,24 +1007,31 @@ const ShoppingList = ({ selectedApartment }) => {
                                 {category.name}
                               </h4>
                               
-                              {categoryItems.map(item => (
-                                <div key={item.id} className={`shopping-item ${item.completed ? 'completed' : ''}`} style={{ marginBottom: '10px' }}
-                                  onTouchStart={() => handleItemTouchStart(item)}
-                                  onTouchEnd={handleItemTouchEnd}
-                                  onTouchMove={handleItemTouchMove}
-                                >
-                                  <div className="item-checkbox" onClick={() => toggleItemStatus(item.id)}>
-                                    {item.completed ? <FiCheck /> : null}
+                              {categoryItems.map((item, index) => {
+                                // Verwende den _clientIndex wenn vorhanden, sonst die Kombination aus category.id und index
+                                const uniqueKey = item._clientIndex !== undefined 
+                                  ? `${item.id}-${item._clientIndex}` 
+                                  : `${item.id}-${category.id}-${index}`;
+                                
+                                return (
+                                  <div key={uniqueKey} className={`shopping-item ${item.completed ? 'completed' : ''}`} style={{ marginBottom: '10px' }}
+                                    onTouchStart={() => handleItemTouchStart(item)}
+                                    onTouchEnd={handleItemTouchEnd}
+                                    onTouchMove={handleItemTouchMove}
+                                  >
+                                    <div className="item-checkbox" onClick={() => toggleItemStatus(item.id)}>
+                                      {item.completed ? <FiCheck /> : null}
+                                    </div>
+                                    <div className="item-content">
+                                      <div className="item-name" style={{ color: 'var(--text-primary)' }}>{item.name}</div>
+                                      <div className="item-quantity" style={{ color: 'var(--text-secondary)' }}>{item.quantity}</div>
+                                    </div>
+                                    <button className="item-delete" onClick={() => deleteItem(item.id)}>
+                                      <FiTrash2 size={16} />
+                                    </button>
                                   </div>
-                                  <div className="item-content">
-                                    <div className="item-name" style={{ color: 'var(--text-primary)' }}>{item.name}</div>
-                                    <div className="item-quantity" style={{ color: 'var(--text-secondary)' }}>{item.quantity}</div>
-                                  </div>
-                                  <button className="item-delete" onClick={() => deleteItem(item.id)}>
-                                    <FiTrash2 size={16} />
-                                  </button>
-                                </div>
-                              ))}
+                                );
+                              })}
                             </div>
                           );
                         });
@@ -994,24 +1046,31 @@ const ShoppingList = ({ selectedApartment }) => {
                                 {categoryId}
                               </h4>
                               
-                              {categoryItems.map(item => (
-                                <div key={item.id} className={`shopping-item ${item.completed ? 'completed' : ''}`} style={{ marginBottom: '10px' }}
-                                  onTouchStart={() => handleItemTouchStart(item)}
-                                  onTouchEnd={handleItemTouchEnd}
-                                  onTouchMove={handleItemTouchMove}
-                                >
-                                  <div className="item-checkbox" onClick={() => toggleItemStatus(item.id)}>
-                                    {item.completed ? <FiCheck /> : null}
+                              {categoryItems.map((item, index) => {
+                                // Verwende den _clientIndex wenn vorhanden, sonst die Kombination aus categoryId und index
+                                const uniqueKey = item._clientIndex !== undefined 
+                                  ? `${item.id}-${item._clientIndex}` 
+                                  : `${item.id}-custom-${categoryId}-${index}`;
+                                  
+                                return (
+                                  <div key={uniqueKey} className={`shopping-item ${item.completed ? 'completed' : ''}`} style={{ marginBottom: '10px' }}
+                                    onTouchStart={() => handleItemTouchStart(item)}
+                                    onTouchEnd={handleItemTouchEnd}
+                                    onTouchMove={handleItemTouchMove}
+                                  >
+                                    <div className="item-checkbox" onClick={() => toggleItemStatus(item.id)}>
+                                      {item.completed ? <FiCheck /> : null}
+                                    </div>
+                                    <div className="item-content">
+                                      <div className="item-name" style={{ color: 'var(--text-primary)' }}>{item.name}</div>
+                                      <div className="item-quantity" style={{ color: 'var(--text-secondary)' }}>{item.quantity}</div>
+                                    </div>
+                                    <button className="item-delete" onClick={() => deleteItem(item.id)}>
+                                      <FiTrash2 size={16} />
+                                    </button>
                                   </div>
-                                  <div className="item-content">
-                                    <div className="item-name" style={{ color: 'var(--text-primary)' }}>{item.name}</div>
-                                    <div className="item-quantity" style={{ color: 'var(--text-secondary)' }}>{item.quantity}</div>
-                                  </div>
-                                  <button className="item-delete" onClick={() => deleteItem(item.id)}>
-                                    <FiTrash2 size={16} />
-                                  </button>
-                                </div>
-                              ))}
+                                );
+                              })}
                             </div>
                           );
                         });
@@ -1025,24 +1084,34 @@ const ShoppingList = ({ selectedApartment }) => {
                       <h4 style={styles.categoryHeader}>
                         Produkte (alphabetisch)
                       </h4>
-                      {items.sort((a, b) => a.name.localeCompare(b.name)).map(item => (
-                        <div key={item.id} className={`shopping-item ${item.completed ? 'completed' : ''}`} style={{ marginBottom: '10px' }}
-                          onTouchStart={() => handleItemTouchStart(item)}
-                          onTouchEnd={handleItemTouchEnd}
-                          onTouchMove={handleItemTouchMove}
-                        >
-                          <div className="item-checkbox" onClick={() => toggleItemStatus(item.id)}>
-                            {item.completed ? <FiCheck /> : null}
+                      {items.sort((a, b) => a.name.localeCompare(b.name)).map((item, index) => {
+                        // Verwende eine deterministische eindeutige ID basierend auf clientIndex oder array index
+                        const uniqueKey = item._clientIndex !== undefined
+                          ? `${item.id}-${item._clientIndex}`
+                          : `${item.id}-alpha-${index}`;
+                          
+                        // Debug-Info fu00fcr das React-Key-Problem
+                        console.log(`Alphabetische Ansicht - Item: ${item.name}, ID: ${item.id}, uniqueKey: ${uniqueKey}`);
+                        
+                        return (
+                          <div key={uniqueKey} className={`shopping-item ${item.completed ? 'completed' : ''}`} style={{ marginBottom: '10px' }}
+                            onTouchStart={() => handleItemTouchStart(item)}
+                            onTouchEnd={handleItemTouchEnd}
+                            onTouchMove={handleItemTouchMove}
+                          >
+                            <div className="item-checkbox" onClick={() => toggleItemStatus(item.id)}>
+                              {item.completed ? <FiCheck /> : null}
+                            </div>
+                            <div className="item-content">
+                              <div className="item-name" style={{ color: 'var(--text-primary)' }}>{item.name}</div>
+                              <div className="item-quantity" style={{ color: 'var(--text-secondary)' }}>{item.quantity}</div>
+                            </div>
+                            <button className="item-delete" onClick={() => deleteItem(item.id)}>
+                              <FiTrash2 size={16} />
+                            </button>
                           </div>
-                          <div className="item-content">
-                            <div className="item-name" style={{ color: 'var(--text-primary)' }}>{item.name}</div>
-                            <div className="item-quantity" style={{ color: 'var(--text-secondary)' }}>{item.quantity}</div>
-                          </div>
-                          <button className="item-delete" onClick={() => deleteItem(item.id)}>
-                            <FiTrash2 size={16} />
-                          </button>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>

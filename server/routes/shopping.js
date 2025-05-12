@@ -490,27 +490,12 @@ router.post('/apartment/:apartmentId/list/:listId/items', verifyToken, async (re
     
     console.log('Füge Item zur Liste hinzu:', { listId, name, category, quantity, checked });
     
-    // Prüfe, ob der Artikel bereits existiert (gleicher Name und Kategorie)
-    const [existingItems] = await pool.query(
-      'SELECT * FROM shopping_items WHERE list_id = ? AND name = ? AND category = ?',
-      [listId, name, category || 'sonstiges']
-    );
+    // HINWEIS: Deaktivierter Code 
+    // Prüfung auf existierende Items mit gleichem Namen entfernt, damit identische Items
+    // hinzugefügt werden können
     
-    if (existingItems.length > 0) {
-      // Ein Artikel mit diesem Namen und dieser Kategorie existiert bereits,
-      // also aktualisieren wir ihn stattdessen
-      await pool.query(
-        'UPDATE shopping_items SET quantity = ?, checked = ? WHERE id = ?',
-        [quantity || '', checked ? 1 : 0, existingItems[0].id]
-      );
-      
-      const [updatedItem] = await pool.query(
-        'SELECT * FROM shopping_items WHERE id = ?',
-        [existingItems[0].id]
-      );
-      
-      return res.json(updatedItem[0]);
-    }
+    // DEBUG-Logging hinzugefügt
+    console.log(`Neues Item wird erstellt in Apartment ${apartmentId}, Liste ${listId}: ${name} (Kategorie: ${category || 'sonstiges'})`);
     
     // Ansonsten neuen Artikel hinzufügen
     const [result] = await pool.query(
@@ -557,27 +542,12 @@ router.post('/:id/items', verifyToken, async (req, res) => {
     
     const { name, quantity, category, checked } = req.body;
     
-    // Prüfe, ob der Artikel bereits existiert (gleicher Name und Kategorie)
-    const [existingItems] = await pool.query(
-      'SELECT * FROM shopping_items WHERE list_id = ? AND name = ? AND category = ?',
-      [req.params.id, name, category || 'sonstiges']
-    );
+    // HINWEIS: Deaktivierter Code 
+    // Prüfung auf existierende Items mit gleichem Namen entfernt, damit identische Items
+    // hinzugefügt werden können
     
-    if (existingItems.length > 0) {
-      // Ein Artikel mit diesem Namen und dieser Kategorie existiert bereits,
-      // also aktualisieren wir ihn stattdessen
-      await pool.query(
-        'UPDATE shopping_items SET quantity = ?, checked = ? WHERE id = ?',
-        [quantity || '', checked ? 1 : 0, existingItems[0].id]
-      );
-      
-      const [updatedItem] = await pool.query(
-        'SELECT * FROM shopping_items WHERE id = ?',
-        [existingItems[0].id]
-      );
-      
-      return res.json(updatedItem[0]);
-    }
+    // DEBUG: Log für Transparenz
+    console.log(`Neues Item wird erstellt: ${name} in Kategorie ${category || 'sonstiges'} für Liste ${req.params.id}`);
     
     // Ansonsten neuen Artikel hinzufügen
     const [result] = await pool.query(
