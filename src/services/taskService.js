@@ -488,7 +488,7 @@ const taskService = {
                          taskData.repeat === 'weekly' ? 'weekly' : 
                          taskData.repeat === 'biweekly' ? 'weekly' : 
                          taskData.repeat === 'monthly' ? 'monthly' : null,
-          interval_value: taskData.repeat === 'biweekly' ? 2 : 1,
+          interval_value: taskData.intervalValue || (taskData.repeat === 'biweekly' ? 2 : 1),
           color: taskData.color || '#4a90e2',
           initial_due_date: taskData.dueDate, // Wichtig: Duäpliciere initial_due_date vom dueDate beim Template
           // Hier verwenden wir nicht assigned_user_id, weil Template-Zuweisungen 

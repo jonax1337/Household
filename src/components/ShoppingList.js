@@ -11,19 +11,7 @@ const styles = {
   stickyHeaderCard: {
     position: 'sticky',
     top: 'max(16px, env(safe-area-inset-top) + 16px)', // Berücksichtigt Safe Area für Geräte mit Notches
-    zIndex: 10,
-    background: 'var(--card-background)', // Transparenter Hintergrund für Glaseffekt
-    backdropFilter: 'var(--glass-blur)', // Unschärfe-Effekt für Glasmorphismus
-    WebkitBackdropFilter: 'var(--glass-blur)', // Für Safari
-    padding: '10px 15px',
-    marginBottom: '15px',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.05)', // Weicher Schatten für Glaseffekt
-    borderRadius: 'var(--card-radius)',
-    border: 'var(--glass-border)', // Feine Grenze für Glaseffekt
-    transition: 'all 0.3s ease',
+    zIndex: 10
   },
   headerContent: {
     display: 'flex',
@@ -120,11 +108,10 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '5px',
-    padding: '8px 0',
     backgroundColor: 'transparent',
     border: 'none',
     borderRadius: '5px',
-    color: 'var(--text-primary)',
+    color: 'var(--text)',
     cursor: 'pointer',
     marginLeft: '-5px' // Stärker nach links verschieben
   },
@@ -565,7 +552,7 @@ const ShoppingList = ({ selectedApartment }) => {
   return (
     <div className="container fadeIn">
       {/* Sticky Header */}
-      <div style={styles.stickyHeaderCard}>
+      <div className="card" style={styles.stickyHeaderCard}>
         <div style={styles.headerContent}>
           {showListsView ? (
             /* Header für Listenübersicht */
@@ -591,7 +578,7 @@ const ShoppingList = ({ selectedApartment }) => {
                   }}
                   title="Zurück zur Übersicht"
                 >
-                  <FiArrowLeft size={24} />
+                  <FiArrowLeft size={20} />
                 </button>
                 
                 {isEditingListName ? (

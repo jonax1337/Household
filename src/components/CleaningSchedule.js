@@ -6,6 +6,35 @@ import NoApartmentSelected from './NoApartmentSelected';
 
 // Inline Styles für Template- und Instanz-Darstellung
 const styles = {
+  // Header Styles
+  stickyHeaderCard: {
+    position: 'sticky',
+    top: 'max(16px, env(safe-area-inset-top) + 16px)', // Berücksichtigt Safe Area für Geräte mit Notches
+    zIndex: 10,
+    background: 'var(--card-background)', // Transparenter Hintergrund für Glaseffekt
+    backdropFilter: 'var(--glass-blur)', // Unschärfe-Effekt für Glasmorphismus
+    WebkitBackdropFilter: 'var(--glass-blur)', // Für Safari
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.05)', // Weicher Schatten für Glaseffekt
+    borderRadius: 'var(--card-radius)',
+    border: 'var(--glass-border)', // Feine Grenze für Glaseffekt
+    transition: 'all 0.3s ease',
+  },
+  headerContent: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%'
+  },
+  headerTitle: {
+    margin: 0,
+    fontSize: 'clamp(1.5rem, 4vw, 2.5rem)',
+    fontWeight: 'bold',
+    color: 'var(--text-primary)'
+  },
+  // Task Styles
   taskContainer: {
     position: 'relative',
     marginBottom: '2px',
@@ -2689,20 +2718,22 @@ const CleaningSchedule = ({ selectedApartment }) => {
         document.body
       )}
     
-      <div className="card" style={{ marginBottom: '20px' }}>
-        {/* Header mit Titel und Plus-Button in einer Zeile */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h1 style={{ margin: 0 }}>Aufgaben</h1>
+      {/* Sticky Header */}
+      <div className="card" style={styles.stickyHeaderCard}>
+        <div style={styles.headerContent}>
+          <h1 style={styles.headerTitle}>Aufgaben</h1>
           
           <button 
             className="icon-button-add" 
             onClick={toggleAddForm}
             title="Neue Aufgabe"
-            style={{ marginLeft: 'auto' }}
           >
             <FiPlus size={24} />
           </button>
         </div>
+      </div>
+
+      <div className="card" style={{ marginBottom: '20px' }}>
         
         {/* Aufgabenformular als Fullscreen-Modal */}
         {showAddForm && createPortal(

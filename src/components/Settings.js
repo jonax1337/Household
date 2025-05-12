@@ -6,6 +6,33 @@ import { useTheme } from '../context/ThemeContext';
 import { authService, apartmentService, roommateService } from '../services/api';
 import NotificationPrompt from './NotificationPrompt';
 
+// CSS-Stile für die ShoppingList-Komponente
+const styles = {
+    // Header Styles
+    stickyHeaderCard: {
+      position: 'sticky',
+      top: 'max(16px, env(safe-area-inset-top) + 16px)', // Berücksichtigt Safe Area für Geräte mit Notches
+      zIndex: 10,
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      borderRadius: 'var(--card-radius)',
+      border: 'var(--glass-border)'
+    },
+    headerContent: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      width: '100%'
+    },
+    headerTitle: {
+      margin: 0,
+      fontSize: 'clamp(1.5rem, 4vw, 2.5rem)',
+      fontWeight: 'bold',
+      color: 'var(--text-primary)'
+    }   
+}
+
 const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartment, setSelectedApartment, apartments, setApartments }) => {
   // Eigenen lokalen State für currentUser, falls der Prop nicht gesetzt ist
   const [localCurrentUser, setLocalCurrentUser] = useState(null);
@@ -491,8 +518,13 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
 
   return (
     <div className="container fadeIn">
-      {/* Keine globale Benachrichtigungskomponente mehr, wir verwenden kontext-spezifische Meldungen */}
-      
+              {/* Sticky Header */}
+              <div className="card" style={styles.stickyHeaderCard}>
+              <div style={styles.headerContent}>
+              <h1 style={styles.headerTitle}>Einstellungen</h1>
+              </div>
+            </div>
+
       {/* Modals für Wohnungsaktionen */}
       {showEditApartmentModal && selectedApartment && createPortal(
         <div className="fullscreen-menu fadeIn">
@@ -888,16 +920,13 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
         </div>,
         document.body
       )}
-      
-      <div className="card" style={{ marginBottom: '20px' }}>
-        <h1>Einstellungen</h1>
-        
+
+<div className="card">
         {/* Wohnungsinfo */}
         {selectedApartment && (
           <div className="settings-section">
-            <h3>Deine Wohnung</h3>
-            <div className="apartment-info card">
-              <h4>{selectedApartment.name}</h4>
+            <div className="apartment-info">
+              <h3>{selectedApartment.name}</h3>
               <p>{selectedApartment.address}</p>
 
               {/* Mitbewohner-Übersicht innerhalb der Wohnungs-Card */}
@@ -1029,8 +1058,8 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
                       alignItems: 'center',
                       justifyContent: 'center',
                       padding: '12px 8px',
-                      borderRadius: '8px',
-                      backgroundColor: 'var(--bg-secondary)',
+                      borderRadius: 'var(--button-radius)',
+                      border: '2px solid var(--border-color)',
                       cursor: 'pointer',
                       transition: 'transform 0.2s ease, background-color 0.2s ease',
                       gap: '10px',
@@ -1059,7 +1088,8 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
                       alignItems: 'center',
                       justifyContent: 'center',
                       padding: '12px 8px',
-                      borderRadius: '8px',
+                      borderRadius: 'var(--button-radius)',
+                      border: '2px solid var(--border-color)',
                       backgroundColor: selectedApartment.isOwner ? 'var(--bg-secondary)' : 'var(--bg-disabled)',
                       cursor: selectedApartment.isOwner ? 'pointer' : 'not-allowed',
                       transition: 'transform 0.2s ease, background-color 0.2s ease',
@@ -1096,7 +1126,8 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
                       alignItems: 'center',
                       justifyContent: 'center',
                       padding: '12px 8px',
-                      borderRadius: '8px',
+                      borderRadius: 'var(--button-radius)',
+                      border: '2px solid var(--border-color)',
                       backgroundColor: 'var(--bg-secondary)',
                       cursor: 'pointer',
                       transition: 'transform 0.2s ease, background-color 0.2s ease',
@@ -1130,17 +1161,12 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
             </div>
           </div>
         )}
+      </div>
 
-        {/* Push-Benachrichtigungen Einstellungen - Opt-Out-Modell */}
-        <div className="settings-section">
+      {/* Push-Benachrichtigungen Einstellungen - Opt-Out-Modell */}
+      <div className="card">
           <h3>Benachrichtigungen</h3>
-          <div style={{ 
-            backgroundColor: 'var(--bg-secondary)',
-            padding: '16px',
-            borderRadius: '8px',
-            marginBottom: '15px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-          }}>
+          <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
               <FiBell size={18} color="var(--primary)" />
               <span style={{ fontWeight: '500' }}>Push-Benachrichtigungen</span>
@@ -1157,11 +1183,8 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'space-between',
-                  padding: '10px 12px',
-                  backgroundColor: 'var(--bg-main)',
-                  borderRadius: '6px',
+                  borderRadius: 'var(--button-radius)',
                   marginBottom: '15px',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
                 }}>
                   <div>
                     <p style={{ margin: '0', fontWeight: '500', fontSize: '0.95rem' }}>
@@ -1324,10 +1347,10 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
             )}
           </div>
         </div>
-        
+
         {/* Benutzerinfo */}
         
-        <div className="settings-section">
+        <div className="card settings-section">
           <h3>Konto</h3>
           <div style={{ marginBottom: '20px' }}>
             <button 
@@ -1339,9 +1362,9 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
             </button>
           </div>
         </div>
-        
-        {/* Theme-Einstellungen */}
-        <div className="settings-section">
+      
+      {/* Theme-Einstellungen */}
+      <div className="settings-section card">
           <h3>Erscheinungsbild</h3>
           <div style={{
             display: 'grid',
@@ -1365,18 +1388,16 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
                 gap: '10px',
                 width: '100%',
                 height: '80px',
-                border: theme.name === 'light' ? '2px solid var(--primary)' : 'none'
+                border: theme.name === 'light' ? '2px solid var(--primary)' : '2px solid var(--border-color)'
               }}
               onMouseOver={(e) => {
                 if (theme.name !== 'light') {
                   e.currentTarget.style.transform = 'translateY(-1px)';
-                  e.currentTarget.style.backgroundColor = 'var(--bg-hover)';
                 }
               }}
               onMouseOut={(e) => {
                 if (theme.name !== 'light') {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.backgroundColor = 'var(--bg-secondary)';
                 }
               }}
             >
@@ -1402,18 +1423,16 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
                 gap: '10px',
                 width: '100%',
                 height: '80px',
-                border: theme.name === 'dark' ? '2px solid var(--primary)' : 'none'
+                border: theme.name === 'dark' ? '2px solid var(--primary)' : '2px solid var(--border-color)'
               }}
               onMouseOver={(e) => {
                 if (theme.name !== 'dark') {
                   e.currentTarget.style.transform = 'translateY(-1px)';
-                  e.currentTarget.style.backgroundColor = 'var(--bg-hover)';
                 }
               }}
               onMouseOut={(e) => {
                 if (theme.name !== 'dark') {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.backgroundColor = 'var(--bg-secondary)';
                 }
               }}
             >
@@ -1439,18 +1458,16 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
                 gap: '10px',
                 width: '100%',
                 height: '80px',
-                border: theme.name === 'cute' ? '2px solid var(--primary)' : 'none'
+                border: theme.name === 'cute' ? '2px solid var(--primary)' : '2px solid var(--border-color)'
               }}
               onMouseOver={(e) => {
                 if (theme.name !== 'cute') {
                   e.currentTarget.style.transform = 'translateY(-1px)';
-                  e.currentTarget.style.backgroundColor = 'var(--bg-hover)';
                 }
               }}
               onMouseOut={(e) => {
                 if (theme.name !== 'cute') {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.backgroundColor = 'var(--bg-secondary)';
                 }
               }}
             >
@@ -1461,7 +1478,6 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
             </div>
           </div>
         </div>
-      </div>
       {/* Zusätzlicher Div am Ende des Containers für Abstand zur Navbar */}
       <div style={{ marginBottom: '120px' }}></div>
     </div>
