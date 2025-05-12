@@ -17,7 +17,8 @@ const styles = {
       justifyContent: 'space-between',
       alignItems: 'center',
       borderRadius: 'var(--card-radius)',
-      border: 'var(--glass-border)'
+      border: 'var(--glass-border)',
+      background: 'var(--card-background)',
     },
     headerContent: {
       display: 'flex',
@@ -982,8 +983,8 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
                                   <span style={{
                                     backgroundColor: 'var(--primary)',
                                     color: 'white',
-                                    padding: '2px 6px',
-                                    borderRadius: '4px',
+                                    padding: '2px 12px',
+                                    borderRadius: 'var(--button-radius)',
                                     fontSize: '0.7rem'
                                   }}>
                                     Besitzer
@@ -991,12 +992,12 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
                                 )}
                                 {roommate.id === currentUser.id && (
                                   <span style={{
-                                    backgroundColor: 'var(--bg-primary)',
-                                    color: 'var(--text-secondary)',
+                                    backgroundColor: 'var(--card-background)',
+                                    color: 'var(--text)',
                                     padding: '2px 6px',
-                                    borderRadius: '4px',
+                                    borderRadius: 'var(--button-radius)',
                                     fontSize: '0.7rem',
-                                    border: '1px solid var(--border)'
+                                    border: '1px solid var(--border-color)'
                                   }}>
                                     Du
                                   </span>
