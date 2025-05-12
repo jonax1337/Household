@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { chatService, authService } from '../services/api';
 import { FiSend, FiCheck, FiMessageCircle, FiAlertCircle, FiLock, FiMoreVertical, FiEdit2, FiRadio, FiTrash2, FiX } from 'react-icons/fi';
 import NoApartmentSelected from './NoApartmentSelected';
@@ -264,6 +265,14 @@ const styles = {
 };
 
 const Chat = ({ apartmentId }) => {
+  // Refs für Tooltip-Handling
+  const encryptionBadgeRef = useRef(null);
+  const tooltipMountedRef = useRef(false);
+  
+  // State mit explizitem Initialwert false
+  const [tooltipVisible, setTooltipVisible] = useState(false);
+  
+  // State für Nachrichten
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [currentUser, setCurrentUser] = useState(null);
@@ -908,79 +917,21 @@ const Chat = ({ apartmentId }) => {
                   boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)',
                   cursor: 'pointer',
                   position: 'relative',
-                  transition: 'all 0.2s ease',
-                  zIndex: 9999
+                  transition: 'all 0.2s ease'
                 }}
-                onMouseEnter={(e) => {
-                  const tooltip = e.currentTarget.querySelector('.encryption-tooltip');
-                  const isMobile = window.innerWidth <= 768;
-                  
-                  if (tooltip) {
-                    tooltip.style.opacity = '1';
-                    tooltip.style.visibility = 'visible';
-                    
-                    if (isMobile) {
-                      tooltip.style.left = '50%';
-                      tooltip.style.transform = 'translate(-50%, 0)';
-                    } else {
-                      tooltip.style.left = '0';
-                      tooltip.style.transform = 'translate(0, 0)';
-                    }
-                  }
+                onClick={() => {
+                  tooltipMountedRef.current = true; // Markiere, dass Tooltip bewusst angezeigt wurde
+                  setTooltipVisible(!tooltipVisible);
                 }}
-                onMouseLeave={(e) => {
-                  const tooltip = e.currentTarget.querySelector('.encryption-tooltip');
-                  const isMobile = window.innerWidth <= 768;
-                  
-                  if (tooltip) {
-                    tooltip.style.opacity = '0';
-                    tooltip.style.visibility = 'hidden';
-                    
-                    if (isMobile) {
-                      tooltip.style.transform = 'translate(-50%, 10px)';
-                    } else {
-                      tooltip.style.transform = 'translate(0, 10px)';
-                    }
-                  }
+                onMouseEnter={() => {
+                  tooltipMountedRef.current = true; // Markiere, dass Tooltip bewusst angezeigt wurde
+                  setTooltipVisible(true);
                 }}
+                onMouseLeave={() => setTooltipVisible(false)}
+                ref={encryptionBadgeRef}
               >
                 <FiLock size={10} style={{marginRight: '3px'}} />
                 <span>Verschlüsselt</span>
-                
-                {/* Tooltip mit Erklärung */}
-                <div className='encryption-tooltip' style={{
-                  position: 'absolute',
-                  top: '30px',  // Tooltip erscheint jetzt unter dem Badge
-                  left: window.innerWidth <= 768 ? '50%' : '0',    // Bei Mobile zentriert, bei Desktop links ausgerichtet
-                  transform: window.innerWidth <= 768 ? 'translate(-50%, 10px)' : 'translate(0, 10px)',
-                  backgroundColor: 'var(--background)',
-                  color: 'var(--text-primary)',
-                  padding: '10px 14px',
-                  borderRadius: '12px',
-                  boxShadow: '0 3px 15px rgba(0, 0, 0, 0.07)',
-                  width: '220px',
-                  fontSize: '12px',
-                  zIndex: 9999,
-                  textAlign: 'left',  // Linksbündiger Text ist besser lesbar
-                  lineHeight: '1.5',
-                  border: '1px solid var(--border)',
-                  opacity: 0,
-                  visibility: 'hidden',
-                  transition: 'all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1)'
-                }}>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginBottom: '4px'
-                  }}>
-                    <FiLock size={12} style={{marginRight: '6px', color: 'var(--primary)'}} />
-                    <strong>Verschlüsselte Kommunikation</strong>
-                  </div>
-                  <p style={{margin: '4px 0 0 0', opacity: 0.8}}>
-                    Alle Nachrichten werden verschlüsselt gespeichert und können nur von Mitgliedern der Wohnung entschlüsselt werden.
-                  </p>
-                </div>
               </div>
             </div>
             {/* Rechte Seite mit Status */}
@@ -1000,13 +951,100 @@ const Chat = ({ apartmentId }) => {
                   lineHeight: 0,
                   color: socketConnected ? 'var(--success)' : 'var(--error)',
                 }}>
-                  {socketConnected ? <FiRadio size={16}/> : <FiAlertCircle size={16}/>}
+                  {socketConnected ? <FiRadio size={16} className='radio-live'/> : <FiAlertCircle size={16}/>}
                 </div>
                 <span>
                   {socketConnected ? '' : 'Offline'}</span>
               </div>
             </div>
           </div>
+          
+      {/* Tooltip-Animation definieren */}
+      <style>
+        {`
+          @keyframes radioPulse {
+            0% { opacity: 0.85; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.08); }
+            100% { opacity: 0.85; transform: scale(1); }
+          }
+          
+          @keyframes subtleGlow {
+            0% { filter: drop-shadow(0 0 1px var(--success)); }
+            50% { filter: drop-shadow(0 0 2px var(--success)); }
+            100% { filter: drop-shadow(0 0 1px var(--success)); }
+          }
+          
+          .radio-live {
+            animation: radioPulse 2s ease-in-out infinite, subtleGlow 2s ease-in-out infinite;
+          }
+          
+          @keyframes tooltipFadeIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          
+          @keyframes tooltipFadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-8px); }
+          }
+          
+          .tooltip-enter {
+            animation: tooltipFadeIn 0.2s ease-out forwards;
+          }
+          
+          .tooltip-exit {
+            animation: tooltipFadeOut 0.2s ease-in forwards;
+          }
+        `}
+      </style>
+      
+      {/* Tooltip außerhalb des Headers als Portal - nur rendern wenn es explizit aktiviert wurde */}
+      {tooltipMountedRef.current && encryptionBadgeRef.current && createPortal(
+        <div 
+          className={`container fadeIn encryption-tooltip ${tooltipVisible ? 'tooltip-enter' : 'tooltip-exit'}`} 
+          style={{
+            position: 'fixed',
+            zIndex: 9999,
+            backgroundColor: 'var(--background)',
+            color: 'var(--text-primary)',
+            padding: '12px 16px',
+            borderRadius: 'var(--card-radius)',
+            boxShadow: 'var(--shadow)',
+            width: 'calc(100% - 32px)', // Volle Breite minus Rand
+            maxWidth: '1200px',
+            fontSize: '11px',
+            textAlign: 'left',
+            lineHeight: '1.5',
+            border: 'var(--glass-border)',
+            backdropFilter: 'var(--glass-blur)',
+            WebkitBackdropFilter: 'var(--glass-blur)',
+            opacity: tooltipVisible ? 1 : 0,
+            pointerEvents: tooltipVisible ? 'auto' : 'none',
+            top: (() => {
+              const rect = encryptionBadgeRef.current.getBoundingClientRect();
+              return rect.bottom + 16 + 'px';
+            })(),
+            left: '16px', // Gleicher Abstand wie Header-Card
+            right: '16px', // Gleicher Abstand wie Header-Card
+            marginLeft: 'auto',
+            marginRight: 'auto'
+          }}
+        >
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            marginBottom: '8px'
+          }}>
+            <FiLock size={12} style={{marginRight: '8px', color: 'var(--primary)'}} />
+            <strong style={{fontSize: '12px'}}>Verschlüsselte Kommunikation</strong>
+          </div>
+          <p style={{margin: '0', opacity: 0.9, fontSize: '12px'}}>
+            Alle Nachrichten werden verschlüsselt gespeichert und können nur von Mitgliedern der Wohnung entschlüsselt werden.
+          </p>
+        </div>,
+        document.body
+      )}
+      
       <div className="card" style={{
         display: 'flex', 
         flexDirection: 'column', 
