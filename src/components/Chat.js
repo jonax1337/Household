@@ -42,7 +42,7 @@ const styles = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '15px'
+    marginBottom: '16px'
   },
   title: {
     display: 'flex',
@@ -51,7 +51,7 @@ const styles = {
   },
   titleIcon: {
     color: 'var(--primary)',
-    marginRight: '5px'
+    marginRight: '8px'
   },
   messageContainer: {
     flex: 1, // Füllt den verfügbaren Platz im Card-Container aus
@@ -74,7 +74,7 @@ const styles = {
   },
   // Gemeinsame Grundstile fu00fcr alle Nachrichtenblasen
   messageCard: {
-    padding: '8px 12px',
+    padding: '8px 16px',
     marginBottom: '16px', // Mehr Abstand zwischen Nachrichtengruppen
     maxWidth: '70%', // Etwas schmalere Blasen für mehr Platz
     width: 'auto', // Automatische Anpassung an den Inhalt
@@ -149,7 +149,7 @@ const styles = {
     justifyContent: 'flex-end' // Rechtsbündig für eigene Nachrichten
   },
   inputContainer: {
-    padding: '12px 15px',
+    padding: '8px 16px',
     borderTop: '1px solid var(--border)',
     backgroundColor: 'var(--bg-secondary)',
     position: 'sticky',
@@ -163,7 +163,7 @@ const styles = {
   },
   input: {
     flex: 1,
-    padding: '10px 15px',
+    padding: '8px 16px',
     borderRadius: '8px',
     border: 'none', // Entferne die Border
     backgroundColor: 'var(--bg-secondary)',

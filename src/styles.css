@@ -77,7 +77,7 @@ body {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 24px;
   position: relative;
   box-sizing: border-box;
 }
@@ -119,12 +119,12 @@ html, body {
   color: white;
   border: none;
   border-radius: var(--button-radius);
-  padding: 12px 24px;
+  padding: 8px 16px;
   font-size: 16px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(96, 92, 255, 0.2);
+  box-shadow: 0 4px 8px rgba(96, 92, 255, 0.2);
   position: relative;
   overflow: hidden;
   letter-spacing: 0.025em;
@@ -154,7 +154,7 @@ html, body {
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
   color: var(--text);
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   font-size: 16px;
   transition: all 0.2s ease;
   letter-spacing: -0.025em;
@@ -179,9 +179,9 @@ html, body {
   .modal-content .input,
   .fadeIn .input {
     font-size: 16px; /* Verhindert Zoom auf iOS beim Fokussieren */
-    padding: 12px 16px;
+    padding: 8px 16px;
     background-color: rgba(255, 255, 255, 0.1);
-    line-height: 1.4;
+    line-height: 1.5;
   }
   
   /* Fix für iOS-Text-Inputs */
@@ -210,7 +210,7 @@ html, body {
     -webkit-appearance: none;
     appearance: none;
     min-height: 80px;
-    padding: 12px 16px;
+    padding: 8px 16px;
   }
 }
 
@@ -229,11 +229,11 @@ html, body {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
-  height: 6px;
+  height: 8px;
   background: #e0e0e0;
   outline: none;
-  border-radius: 10px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  border-radius: 8px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.08);
 }
 
 /* Thumb-Styles (der verschiebbare Teil) */
@@ -242,25 +242,25 @@ html, body {
 .fadeIn input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   background: var(--primary);
   cursor: pointer;
   border-radius: 50%;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  box-shadow: 0 0 8px rgba(0,0,0,0.2);
   transition: all 0.2s ease;
 }
 
 .fullscreen-modal input[type="range"]::-moz-range-thumb,
 .modal-content input[type="range"]::-moz-range-thumb,
 .fadeIn input[type="range"]::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   background: var(--primary);
   cursor: pointer;
   border-radius: 50%;
   border: none;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  box-shadow: 0 0 8px rgba(0,0,0,0.2);
   transition: all 0.2s ease;
 }
 
@@ -381,8 +381,8 @@ h3 {
 }
 
 .bottom-nav-item .bottom-nav-icon {
-  padding: 10px;
-  border-radius: 12px;
+  padding: 8px;
+  border-radius: 8px;
   transition: all 0.2s ease;
 }
 
@@ -405,8 +405,8 @@ h3 {
 /* Badges */
 .badge {
   display: inline-block;
-  padding: 4px 12px;
-  border-radius: 20px;
+  padding: 4px 8px;
+  border-radius: 16px;
   font-size: 0.85rem;
   font-weight: 500;
   background: var(--primary);
@@ -452,7 +452,7 @@ h3 {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 16px;
+  padding: 8px 16px;
   border-radius: var(--button-radius);
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(10px);
@@ -485,23 +485,23 @@ h3 {
 /* Dashboard Mini-Cards */
 .dashboard-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 15px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(144px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
 }
 
 .mini-card {
   border-radius: 16px;
   color: white;
-  padding: 20px 16px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
   position: relative;
   overflow: hidden;
-  height: 110px;
+  height: 112px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   backdrop-filter: blur(5px);
 }
@@ -523,7 +523,7 @@ h3 {
 }
 
 .mini-card-icon {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   opacity: 0.9;
   z-index: 2;
 }
@@ -671,14 +671,14 @@ h3 {
 /* Chat-Styling */
 .message {
   max-width: 70%;
-  padding: 10px 15px;
-  margin-bottom: 12px;
-  border-radius: 18px;
+  padding: 8px 16px;
+  margin-bottom: 8px;
+  border-radius: 16px;
   position: relative;
   line-height: 1.5;
   color: var(--text-primary);
   background-color: var(--background-secondary);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
 }
 
 .message-sent {
@@ -720,19 +720,19 @@ h3 {
 }
 
 .date-divider {
-  margin: 15px 0;
+  margin: 16px 0;
   position: relative;
   text-align: center;
 }
 
 .date-divider .badge {
   display: inline-block;
-  padding: 5px 10px;
+  padding: 4px 8px;
   background-color: var(--background);
-  border-radius: 15px;
+  border-radius: 16px;
   font-size: 12px;
   color: var(--textSecondary);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: 0 0 8px rgba(0,0,0,0.08);
   border: 1px solid var(--border);
 }
 
@@ -742,7 +742,7 @@ h3 {
 }
 
 .card-footer {
-  padding: 10px 15px;
+  padding: 8px 16px;
   border-top: 1px solid var(--border);
 }
 
@@ -813,14 +813,14 @@ h3 {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 40px 20px;
+  padding: 40px 16px;
   overflow-y: auto;
 }
 
 .fullscreen-menu-content {
   width: 100%;
-  max-width: 700px;
-  padding: 30px;
+  max-width: 704px;
+  padding: 32px;
   margin: 0 auto;
   border-radius: 16px;
 }
@@ -828,9 +828,9 @@ h3 {
 /* Theme-Auswahloptionen */
 .theme-options {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 15px;
-  margin-top: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(144px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
 }
 
 .theme-option {
@@ -912,7 +912,7 @@ h3 {
 .context-menu-header {
   font-size: 0.9rem;
   color: var(--text-secondary);
-  padding: 10px 15px;
+  padding: 8px 16px;
   font-weight: 500;
   border-bottom: 1px solid var(--border-color);
   margin-bottom: 8px;
@@ -923,7 +923,7 @@ h3 {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 15px;
+  padding: 8px 16px;
   width: 100%;
   text-align: left;
   border: none;
@@ -931,7 +931,7 @@ h3 {
   cursor: pointer;
   transition: background-color 0.2s, transform 0.1s;
   border-radius: 8px;
-  margin: 0 5px;
+  margin: 0 8px;
 }
 
 .context-menu-item:hover {
@@ -948,7 +948,7 @@ h3 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .fullscreen-menu-content > div:first-child h2 {
@@ -967,7 +967,7 @@ h3 {
   gap: 8px;
   justify-content: center;
   width: 100%;
-  margin: 20px 0;
+  margin: 16px 0;
 }
 
 @media (max-width: 600px) {
@@ -985,7 +985,7 @@ h3 {
   border: none;
   background: none;
   cursor: pointer;
-  padding: 10px;
+  padding: 8px;
   border-radius: 8px;
   transition: all 0.2s ease;
   max-width: 80px;

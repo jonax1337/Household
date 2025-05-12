@@ -92,12 +92,12 @@ const Login = ({ onLoginSuccess, onSwitchToRegister }) => {
       
       <div className="card login-card fadeIn" style={{ 
         maxWidth: '400px', 
-        margin: '2rem auto', 
-        borderRadius: '12px',
+        margin: '32px auto', 
+        borderRadius: '16px',
         boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)' 
       }}>
-        <div style={{ padding: '25px' }}>
-          <h1 style={{ marginBottom: '20px', textAlign: 'center', fontSize: '1.8rem' }}>Anmelden</h1>
+        <div style={{ padding: '24px' }}>
+          <h1 style={{ marginBottom: '24px', textAlign: 'center', fontSize: '1.8rem' }}>Anmelden</h1>
           
           <form onSubmit={handleLogin}>
             <div className="mb-3" style={{ marginBottom: '0' }}>
@@ -159,9 +159,9 @@ const Login = ({ onLoginSuccess, onSwitchToRegister }) => {
               <div style={{ 
                 color: 'var(--color-error)', 
                 background: 'rgba(255, 0, 0, 0.05)', 
-                padding: '10px', 
-                borderRadius: '6px',
-                marginBottom: '15px',
+                padding: '8px 16px', 
+                borderRadius: '8px',
+                marginBottom: '16px',
                 fontSize: '14px'
               }}>
                 {error}
@@ -172,7 +172,7 @@ const Login = ({ onLoginSuccess, onSwitchToRegister }) => {
               type="submit" 
               className="button primary full-width"
               disabled={loading}
-              style={{ width: '100%', marginTop: '20px' }}
+              style={{ width: '100%', marginTop: '24px' }}
             >
               {loading ? 'Anmeldung läuft...' : 'Anmelden'}
             </button>
@@ -180,7 +180,7 @@ const Login = ({ onLoginSuccess, onSwitchToRegister }) => {
             {/* Seperator */}
             <div style={{ 
                 textAlign: 'center', 
-                marginTop: '20px',
+                marginTop: '24px',
                 position: 'relative',
                 display: 'flex',
                 alignItems: 'center',
@@ -196,10 +196,10 @@ const Login = ({ onLoginSuccess, onSwitchToRegister }) => {
               </div>
 
             {/* Soziale Login-Buttons */}
-            <div style={{ marginTop: '20px', position: 'relative' }}>
+            <div style={{ marginTop: '24px', position: 'relative' }}>
               <div style={{ 
                 textAlign: 'center',
-                marginBottom: '15px',
+                marginBottom: '16px',
                 position: 'relative',
                 display: 'flex',
                 alignItems: 'center',
@@ -207,7 +207,7 @@ const Login = ({ onLoginSuccess, onSwitchToRegister }) => {
               }}>
                 <span style={{ 
                   background: 'var(--card-bg)', 
-                  padding: '0 15px', 
+                  padding: '0 16px', 
                   color: 'var(--text-secondary)',
                   position: 'relative',
                   fontSize: '14px'
@@ -216,7 +216,7 @@ const Login = ({ onLoginSuccess, onSwitchToRegister }) => {
                 </span>
               </div>
               
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
                 {/* Microsoft Button */}
                 <button
                   type="button"
@@ -227,7 +227,7 @@ const Login = ({ onLoginSuccess, onSwitchToRegister }) => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    padding: '10px 15px',
+                    padding: '8px 16px',
                     borderRadius: '8px',
                     border: '1px solid var(--border-color)',
                     background: 'var(--card-bg)',
@@ -263,7 +263,7 @@ const Login = ({ onLoginSuccess, onSwitchToRegister }) => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    padding: '10px 15px',
+                    padding: '8px 16px',
                     borderRadius: '8px',
                     border: '1px solid var(--border-color)',
                     background: 'var(--card-bg)',
@@ -299,7 +299,7 @@ const Login = ({ onLoginSuccess, onSwitchToRegister }) => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    padding: '10px 15px',
+                    padding: '8px 16px',
                     borderRadius: '8px',
                     border: '1px solid var(--border-color)',
                     background: 'var(--card-bg)',
@@ -331,7 +331,7 @@ const Login = ({ onLoginSuccess, onSwitchToRegister }) => {
           {/* Seperator */}
           <div style={{ 
                 textAlign: 'center', 
-                marginTop: '20px',
+                marginTop: '24px',
                 position: 'relative',
                 display: 'flex',
                 alignItems: 'center',
@@ -346,7 +346,7 @@ const Login = ({ onLoginSuccess, onSwitchToRegister }) => {
                 }} />
               </div>
 
-          <div style={{ marginTop: '20px', textAlign: 'center' }}>
+          <div style={{ marginTop: '24px', textAlign: 'center' }}>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Noch kein Konto?</p>
             <p 
               onClick={onSwitchToRegister} 

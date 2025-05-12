@@ -46,7 +46,7 @@ const JoinApartment = ({ isOpen, onClose, onJoinApartment }) => {
   return createPortal(
     <div className="fullscreen-menu fadeIn">
       <div className="fullscreen-menu-content">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h2>Einer Wohnung beitreten</h2>
           <button 
             className="icon-button" 
@@ -58,18 +58,18 @@ const JoinApartment = ({ isOpen, onClose, onJoinApartment }) => {
         </div>
       
         {error && (
-          <div style={{ color: 'var(--danger-color)', marginBottom: '15px', padding: '10px', backgroundColor: 'rgba(var(--danger-rgb), 0.1)', borderRadius: 'var(--border-radius)' }}>
+          <div style={{ color: 'var(--danger-color)', marginBottom: '16px', padding: '8px', backgroundColor: 'rgba(var(--danger-rgb), 0.1)', borderRadius: 'var(--border-radius)' }}>
             {error}
           </div>
         )}
         
         <div className="form-group">
-          <p style={{ marginBottom: '20px', color: 'var(--text-secondary)' }}>
+          <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
             Gib den Einladungscode ein, den du von einem Mitbewohner erhalten hast.
           </p>
           
           <label htmlFor="inviteCode">
-            <FiKey style={{ marginRight: '5px' }} />
+            <FiKey style={{ marginRight: '8px' }} />
             Einladungscode
           </label>
           <input 
@@ -80,7 +80,7 @@ const JoinApartment = ({ isOpen, onClose, onJoinApartment }) => {
             value={inviteCode}
             onChange={(e) => setInviteCode(e.target.value)}
             disabled={isJoining}
-            style={{ width: '100%', marginBottom: '25px' }}
+            style={{ width: '100%', marginBottom: '24px' }}
             autoFocus
           />
           

@@ -22,7 +22,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 30px;
+  padding: 32px;
   color: var(--text-secondary);
   text-align: center;
   background-color: rgba(0, 0, 0, 0.02);
@@ -33,13 +33,13 @@
 .task-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .task-item {
   display: flex;
   align-items: center;
-  padding: 10px;
+  padding: 8px;
   background-color: var(--card-background);
   border-radius: 8px;
   border: 1px solid var(--border-color);
@@ -51,14 +51,14 @@
 }
 
 .task-checkbox {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   border: 2px solid var(--primary-color);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 12px;
+  margin-right: 8px;
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -70,7 +70,7 @@
 
 .task-title {
   font-weight: 500;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 }
 
 .task-details {
@@ -78,13 +78,13 @@
   color: var(--text-secondary);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .task-actions {
   display: flex;
-  gap: 6px;
+  gap: 8px;
 }
 
 .task-delete, .task-edit {
@@ -126,7 +126,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 16px;
 }
 
 .calendar-header h3 {
@@ -146,7 +146,7 @@
   font-weight: 500;
   color: var(--text-secondary);
   font-size: 0.9rem;
-  padding: 5px;
+  padding: 8px;
 }
 
 .calendar-grid {
@@ -159,7 +159,7 @@
   aspect-ratio: 1/1;
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  padding: 4px;
+  padding: 8px;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -180,23 +180,23 @@
 .day-number {
   font-size: 0.8rem;
   text-align: center;
-  margin-bottom: 2px;
+  margin-bottom: 8px;
 }
 
 .day-tasks {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 8px;
   font-size: 0.65rem;
   overflow: hidden;
-  max-height: calc(100% - 20px);
+  max-height: calc(100% - 24px);
 }
 
 .day-task {
   display: flex;
   align-items: center;
   border-radius: 4px;
-  padding: 1px 3px;
+  padding: 0 8px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -214,10 +214,10 @@
 }
 
 .task-dot {
-  width: 5px;
-  height: 5px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  margin-right: 3px;
+  margin-right: 8px;
   flex-shrink: 0;
 }
 
@@ -252,8 +252,8 @@
   background: none;
   border: none;
   color: var(--text-secondary);
-  padding: 4px 10px;
-  border-radius: 20px;
+  padding: 4px 8px;
+  border-radius: 16px;
   font-size: 0.85rem;
   cursor: pointer;
   display: flex;
@@ -275,14 +275,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 3px;
+  margin-bottom: 8px;
 }
 
 .task-notes {
   font-size: 0.85rem;
   color: var(--text-secondary);
-  margin-top: 6px;
-  padding: 4px 0;
+  margin-top: 8px;
+  padding: 8px 0;
   border-top: 1px dashed var(--border-color);
 }
 
@@ -291,11 +291,11 @@
   border: 1px solid var(--primary-color);
   color: var(--primary-color);
   border-radius: 4px;
-  padding: 2px 6px;
+  padding: 0 8px;
   font-size: 0.75rem;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -317,17 +317,17 @@
 }
 
 .task-history {
-  padding: 5px 0 0 10px;
-  margin-top: 5px;
+  padding: 8px 0 0 8px;
+  margin-top: 8px;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 8px;
 }
 
 .task-history-entry {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .task-history-date {
@@ -342,7 +342,7 @@
 .task-history-empty {
   color: var(--text-secondary);
   font-style: italic;
-  padding: 5px 0 0 10px;
+  padding: 8px 0 0 8px;
 }
 
 .task-archive {
@@ -375,9 +375,9 @@
 .shopping-item {
   display: flex;
   align-items: center;
-  padding: 12px 15px;
+  padding: 16px;
   background-color: rgba(0, 0, 0, 0.02);
-  border-radius: 10px;
+  border-radius: 8px;
   transition: all 0.2s ease;
 }
 
@@ -390,14 +390,14 @@
 }
 
 .item-checkbox {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   border: 2px solid var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 12px;
+  margin-right: 16px;
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -409,7 +409,7 @@
 
 .item-name {
   font-weight: 500;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 }
 
 .item-quantity {
@@ -423,7 +423,7 @@
   color: var(--text-secondary);
   cursor: pointer;
   opacity: 0.5;
-  padding: 5px;
+  padding: 8px;
   border-radius: 50%;
 }
 
@@ -440,13 +440,13 @@
 /* Finanzen-Stile */
 .balances-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 15px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(184px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
 }
 
 .balance-card {
-  padding: 15px;
+  padding: 16px;
   border-radius: var(--card-radius);
   background-color: rgba(0, 0, 0, 0.03);
   display: flex;
@@ -480,7 +480,7 @@
 .balance-amount {
   font-size: 1.2rem;
   font-weight: 600;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
 }
 
 .balance-card.positive .balance-amount {
@@ -499,8 +499,8 @@
 .participants-checkboxes {
   display: flex;
   flex-wrap: wrap;
-  gap: 15px;
-  margin-top: 10px;
+  gap: 16px;
+  margin-top: 8px;
 }
 
 .checkbox-item {
@@ -512,14 +512,14 @@
 .transactions-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .transaction-item {
   display: flex;
   background-color: rgba(0, 0, 0, 0.02);
   border-radius: var(--card-radius);
-  padding: 15px;
+  padding: 16px;
   transition: all 0.2s ease;
 }
 
@@ -534,7 +534,7 @@
 .transaction-primary {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
 }
 
 .transaction-description {
@@ -547,10 +547,10 @@
 
 .transaction-secondary {
   display: flex;
-  gap: 15px;
+  gap: 16px;
   font-size: 0.8rem;
   color: var(--text-secondary);
-  margin-bottom: 3px;
+  margin-bottom: 8px;
 }
 
 .transaction-participants {
@@ -564,7 +564,7 @@
   color: var(--text-secondary);
   cursor: pointer;
   opacity: 0.5;
-  padding: 5px;
+  padding: 8px;
   border-radius: 50%;
   align-self: center;
 }
@@ -583,13 +583,13 @@
 .roommates-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .roommate-card {
   display: flex;
   align-items: center;
-  padding: 15px;
+  padding: 16px;
   background-color: rgba(0, 0, 0, 0.02);
   border-radius: var(--card-radius);
   transition: all 0.2s ease;
@@ -607,7 +607,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 15px;
+  margin-right: 16px;
   color: var(--primary);
   flex-shrink: 0;
 }
@@ -620,16 +620,16 @@
   font-weight: 500;
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 4px;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
 .owner-badge {
   font-size: 0.7rem;
-  padding: 3px 8px;
+  padding: 0 8px;
   background-color: rgba(var(--primary-rgb), 0.1);
   color: var(--primary);
-  border-radius: 12px;
+  border-radius: 8px;
   font-weight: 600;
 }
 
@@ -651,11 +651,11 @@
   
   .transaction-secondary {
     flex-direction: column;
-    gap: 5px;
+    gap: 8px;
   }
   
   .participants-checkboxes {
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
   }
 }

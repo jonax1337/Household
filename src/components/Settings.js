@@ -551,7 +551,7 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
                 placeholder="z.B. Meine WG"
                 value={apartmentFormData.name}
                 onChange={(e) => setApartmentFormData({...apartmentFormData, name: e.target.value})}
-                style={{ width: '100%', marginBottom: '20px' }}
+                style={{ width: '100%', marginBottom: '16px' }}
               />
               
               <AddressPicker
@@ -573,7 +573,7 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
                   setApartmentFormData(newFormData);
                 }}
                 required
-                style={{ marginBottom: '20px' }}
+                style={{ marginBottom: '16px' }}
               />
               
               <button 

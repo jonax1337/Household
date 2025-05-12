@@ -139,12 +139,12 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
       
       <div className="card login-card fadeIn" style={{ 
         maxWidth: '400px', 
-        margin: '2rem auto', 
-        borderRadius: '12px',
+        margin: '32px auto', 
+        borderRadius: '16px',
         boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)' 
       }}>
-        <div style={{ padding: '25px' }}>
-          <h1 style={{ marginBottom: '20px', textAlign: 'center', fontSize: '1.8rem' }}>Registrieren</h1>
+        <div style={{ padding: '24px' }}>
+          <h1 style={{ marginBottom: '24px', textAlign: 'center', fontSize: '1.8rem' }}>Registrieren</h1>
           
           <form onSubmit={handleRegister}>
             <div className="mb-3" style={{ marginBottom: '0' }}>
@@ -219,11 +219,11 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
               
               {/* Passwort-Stärke-Anzeige */}
               {formData.password && (
-                <div style={{ marginTop: '10px' }}>
+                <div style={{ marginTop: '8px' }}>
                   {/* Fortschrittsbalken für Passwortstärke */}
                   <div style={{ 
-                    height: '6px', 
-                    borderRadius: '3px', 
+                    height: '8px', 
+                    borderRadius: '4px', 
                     background: '#e0e0e0', 
                     marginBottom: '8px',
                     overflow: 'hidden'
@@ -260,16 +260,16 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
                   </div>
                   
                   {/* Kriterien-Liste */}
-                  <div style={{ marginTop: '10px', fontSize: '13px' }}>
+                  <div style={{ marginTop: '8px', fontSize: '13px' }}>
                     <div style={{ 
                       display: 'flex', 
                       alignItems: 'center', 
-                      marginBottom: '4px',
+                      marginBottom: '8px',
                       color: passwordFeedback.minLength ? '#4caf50' : 'var(--text-secondary)'
                     }}>
                       {passwordFeedback.minLength ? 
-                        <FiCheck style={{ marginRight: '6px', strokeWidth: 3 }} /> : 
-                        <FiX style={{ marginRight: '6px', strokeWidth: 3 }} />
+                        <FiCheck style={{ marginRight: '8px', strokeWidth: 3 }} /> : 
+                        <FiX style={{ marginRight: '8px', strokeWidth: 3 }} />
                       }
                       Mindestens 6 Zeichen
                     </div>
@@ -277,12 +277,12 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
                     <div style={{ 
                       display: 'flex', 
                       alignItems: 'center', 
-                      marginBottom: '4px',
+                      marginBottom: '8px',
                       color: passwordFeedback.hasLetter ? '#4caf50' : 'var(--text-secondary)'
                     }}>
                       {passwordFeedback.hasLetter ? 
-                        <FiCheck style={{ marginRight: '6px', strokeWidth: 3 }} /> : 
-                        <FiX style={{ marginRight: '6px', strokeWidth: 3 }} />
+                        <FiCheck style={{ marginRight: '8px', strokeWidth: 3 }} /> : 
+                        <FiX style={{ marginRight: '8px', strokeWidth: 3 }} />
                       }
                       Mindestens ein Buchstabe
                     </div>
@@ -290,12 +290,12 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
                     <div style={{ 
                       display: 'flex', 
                       alignItems: 'center', 
-                      marginBottom: '4px',
+                      marginBottom: '8px',
                       color: passwordFeedback.hasNumber ? '#4caf50' : 'var(--text-secondary)'
                     }}>
                       {passwordFeedback.hasNumber ? 
-                        <FiCheck style={{ marginRight: '6px', strokeWidth: 3 }} /> : 
-                        <FiX style={{ marginRight: '6px', strokeWidth: 3 }} />
+                        <FiCheck style={{ marginRight: '8px', strokeWidth: 3 }} /> : 
+                        <FiX style={{ marginRight: '8px', strokeWidth: 3 }} />
                       }
                       Mindestens eine Zahl
                     </div>
@@ -306,8 +306,8 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
                       color: passwordFeedback.hasSpecial ? '#4caf50' : 'var(--text-secondary)'
                     }}>
                       {passwordFeedback.hasSpecial ? 
-                        <FiCheck style={{ marginRight: '6px', strokeWidth: 3 }} /> : 
-                        <FiX style={{ marginRight: '6px', strokeWidth: 3 }} />
+                        <FiCheck style={{ marginRight: '8px', strokeWidth: 3 }} /> : 
+                        <FiX style={{ marginRight: '8px', strokeWidth: 3 }} />
                       }
                       Mindestens ein Sonderzeichen
                     </div>
@@ -352,7 +352,7 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
                 </button>
               </div>
               {formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword && (
-                <p style={{ color: 'var(--error)', fontSize: '12px', marginTop: '4px' }}>
+                <p style={{ color: 'var(--error)', fontSize: '12px', marginTop: '8px' }}>
                   Die Passwörter stimmen nicht überein.
                 </p>
               )}
@@ -363,9 +363,9 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
               <div style={{ 
                 color: 'var(--color-error)', 
                 background: 'rgba(255, 0, 0, 0.05)', 
-                padding: '10px', 
-                borderRadius: '6px',
-                marginBottom: '15px',
+                padding: '8px 16px', 
+                borderRadius: '8px',
+                marginBottom: '16px',
                 fontSize: '14px'
               }}>
                 {error}
@@ -375,20 +375,20 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
             <button 
               type="submit" 
               className="button primary full-width"
-              style={{ width: '100%', marginTop: '20px' }}
+              style={{ width: '100%', marginTop: '24px' }}
               disabled={loading || (formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword)}
             >
               {loading ? 'Registrieren...' : 'Registrieren'}
             </button>
           </form>
           
-          <div style={{ textAlign: 'center', marginTop: '20px' }}>
+          <div style={{ textAlign: 'center', marginTop: '24px' }}>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
               Bereits registriert? 
             </p>
             <p 
               onClick={onSwitchToLogin}
-              style={{ textDecoration: 'underline', marginTop: '10px', width: '100%', fontSize: '14px', color: 'var(--text-secondary)' }}
+              style={{ textDecoration: 'underline', marginTop: '8px', width: '100%', fontSize: '14px', color: 'var(--text-secondary)' }}
             >
               Anmelden
             </p>

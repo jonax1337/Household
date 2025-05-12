@@ -37,10 +37,10 @@ const styles = {
   // Task Styles
   taskContainer: {
     position: 'relative',
-    marginBottom: '2px',
+    marginBottom: '8px',
     background: 'var(--card-background)',
     borderRadius: 'var(--button-radius)',
-    padding: '12px 16px',
+    padding: '16px',
     boxShadow: 'var(--shadow)',
     transition: 'all 0.2s ease',
     display: 'flex',
@@ -55,24 +55,25 @@ const styles = {
   },
   taskIcon: {
     position: 'absolute',
-    top: '10px',
-    right: '10px',
+    top: '8px',
+    right: '8px',
     fontSize: '12px',
     color: 'var(--text-secondary)',
     display: 'flex',
     alignItems: 'center',
-    gap: '4px'
+    gap: '8px'
   },
   templateBadge: {
     background: 'rgba(var(--primary-rgb), 0.1)',
     color: 'var(--primary)',
-    padding: '2px 8px',
+    padding: '0 8px',
     borderRadius: 'var(--button-radius)',
     fontSize: '10px',
     fontWeight: 'bold',
     display: 'inline-flex',
     alignItems: 'center',
-    gap: '4px'
+    gap: '8px',
+    height: '16px'
   }
 };
 
@@ -4051,11 +4052,11 @@ const CleaningSchedule = ({ selectedApartment }) => {
                       style={{ 
                         fontSize: '16px', 
                         fontWeight: '600', 
-                        marginBottom: '3px',
+                        marginBottom: '0',
                         lineHeight: '1.2',
                         paddingTop: '0',
-                        marginTop: '5px',
-                        marginRight: '65px',
+                        marginTop: '8px',
+                        marginRight: '64px',
                         textDecoration: task.isDone ? 'line-through' : 'none',
                         opacity: task.isDone ? 0.7 : 1,
                         color: 'var(--text)'
@@ -4069,27 +4070,27 @@ const CleaningSchedule = ({ selectedApartment }) => {
                       <div className="task-notes" style={{
                         fontSize: '14px',
                         color: 'var(--text-secondary)',
-                        marginBottom: '12px',
-                        padding: '8px 10px',
+                        marginBottom: '16px',
+                        padding: '8px',
                         backgroundColor: 'rgba(var(--background-rgb), 0.5)',
-                        borderRadius: '6px',
+                        borderRadius: '8px',
                         border: '1px solid var(--border-color)',
-                        marginTop: '10px'
+                        marginTop: '8px'
                       }}>
                         {task.notes}
                       </div>
                     )}
                     
                     {/* Info-Zeilen - kompaktere Darstellung */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginTop: '3px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
                       {/* Zugewiesener Benutzer mit Mini-Profilbild */}
                       <div style={{ display: 'flex', alignItems: 'center', fontSize: '13px' }}>
                         <div style={{
-                          width: '20px',
-                          height: '20px',
+                          width: '24px',
+                          height: '24px',
                           borderRadius: '50%',
                           backgroundColor: task.assignedToId ? `var(--${getColorForUser(task.assignedToId) || 'primary'})` : 'var(--text-secondary)',
-                          marginRight: '6px',
+                          marginRight: '8px',
                           display: 'flex',
                           justifyContent: 'center',
                           alignItems: 'center',
@@ -4110,9 +4111,9 @@ const CleaningSchedule = ({ selectedApartment }) => {
                         <div className="completed-info" style={{
                           fontSize: '12px',
                           backgroundColor: 'rgba(var(--primary-rgb), 0.08)',
-                          borderRadius: '4px',
-                          padding: '8px 10px',
-                          marginTop: '6px',
+                          borderRadius: '8px',
+                          padding: '8px',
+                          marginTop: '8px',
                           borderLeft: '2px solid var(--primary)',
                           color: 'var(--text-secondary)'
                         }}>

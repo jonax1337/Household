@@ -21,8 +21,8 @@ body.light-theme {
   --success: #00E096;
   --warning: #FFB156;
   --error: #FF647C;
-  --button-radius: 12px;
-  --card-radius: 20px;
+  --button-radius: 8px;
+  --card-radius: 16px;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
   --glass-blur: blur(20px);
   --glass-border: 1px solid rgba(255, 255, 255, 0.18);
@@ -44,8 +44,8 @@ body.dark-theme {
   --success: #10B981;
   --warning: #F59E0B;
   --error: #EF4444;
-  --button-radius: 12px;
-  --card-radius: 20px;
+  --button-radius: 8px;
+  --card-radius: 16px;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   --glass-blur: blur(20px);
   --glass-border: 1px solid rgba(255, 255, 255, 0.08);
@@ -67,7 +67,7 @@ body.cute-theme {
   --success: #9AE78B;
   --warning: #FFD26A;
   --error: #FF8FAD;
-  --button-radius: 20px;
+  --button-radius: 16px;
   --card-radius: 24px;
   --shadow: 0 10px 30px rgba(211, 162, 232, 0.2);
   --glass-blur: blur(20px);

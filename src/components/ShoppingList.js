@@ -35,7 +35,7 @@ const styles = {
   titleWithBack: {
     display: 'flex',
     alignItems: 'center',
-    gap: '10px'
+    gap: '8px'
   },
   backButton: {
     display: 'flex',
@@ -46,12 +46,12 @@ const styles = {
     fontSize: '16px',
     color: 'var(--text-secondary)',
     cursor: 'pointer',
-    padding: '5px'
+    padding: '8px'
   },
   quickAddItem: {
-    marginTop: '15px',
+    marginTop: '16px',
     borderTop: '1px dashed var(--border)',
-    paddingTop: '15px'
+    paddingTop: '16px'
   },
   quickAddInputGroup: {
     display: 'flex',
@@ -60,7 +60,7 @@ const styles = {
   },
   quickAddName: {
     flex: '2',
-    padding: '10px',
+    padding: '8px',
     borderRadius: '8px',
     border: '1px solid var(--border)',
     backgroundColor: 'var(--bg-secondary)',
@@ -69,7 +69,7 @@ const styles = {
   },
   quickAddQuantity: {
     flex: '1',
-    padding: '10px',
+    padding: '8px',
     borderRadius: '8px',
     border: '1px solid var(--border)',
     backgroundColor: 'var(--bg-secondary)',
@@ -78,15 +78,15 @@ const styles = {
     color: 'var(--text-primary)'
   },
   listCard: {
-    padding: '12px 15px',
+    padding: '8px 16px',
     backgroundColor: 'var(--card-background)',
     borderRadius: 'var(--button-radius)',
-    marginBottom: '10px',
+    marginBottom: '8px',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     cursor: 'pointer',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+    boxShadow: '0 0 8px rgba(0,0,0,0.05)',
     transition: 'all 0.2s ease',
     border: '1px solid var(--border-color)'
   },
@@ -931,14 +931,14 @@ const ShoppingList = ({ selectedApartment }) => {
                         <div style={styles.listCardLeft}>
                           <div style={styles.listCardTitle}>{list.name}</div>
                           {list.date && (
-                            <div style={styles.listCardMeta}>Erstellt am {new Date(list.date).toLocaleDateString()}</div>
+                            <div style={styles.listCardMeta}>Erstellt am {new Date(list.date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}</div>
                           )}
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <button 
                             className="icon-button" 
                             onClick={(e) => startEditingListNameInOverview(list.id, e)}
-                            style={{ padding: '5px' }}
+                            style={{ padding: '8px' }}
                             title="Listen-Namen bearbeiten"
                           >
                             <FiEdit size={16} color="var(--text-secondary)" />
@@ -950,7 +950,7 @@ const ShoppingList = ({ selectedApartment }) => {
                               setListToDelete(list.id);
                               setShowDeleteListConfirm(true);
                             }}
-                            style={{ padding: '5px' }}
+                            style={{ padding: '8px' }}
                             title="Liste lo00f6schen"
                           >
                             <FiTrash2 size={16} />
@@ -967,8 +967,8 @@ const ShoppingList = ({ selectedApartment }) => {
         ) : (
           /* Detailansicht einer Liste */
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 {!showArchive && items.length > 0 && (
                   <button 
                     className="icon-button" 
@@ -1059,16 +1059,16 @@ const ShoppingList = ({ selectedApartment }) => {
               items.length === 0 ? (
                 <div>
                   <div className="empty-state">
-                    <FiShoppingCart size={40} style={{ opacity: 0.5, marginBottom: '10px' }} />
+                    <FiShoppingCart size={40} style={{ opacity: 0.5, marginBottom: '8px' }} />
                     <p style={{ color: 'var(--text-primary)' }}>Keine Produkte in dieser Liste</p>
                     <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Füge dein erstes Produkt hinzu</p>
                   </div>
                   
                   {/* Button zum Öffnen des Fullscreen-Modals */}
-                  <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px' }}>
                     <button 
                       className="button primary" 
-                      style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 20px' }}
+                      style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px' }}
                       onClick={() => setShowAddItemForm(true)}
                     >
                       <FiPlus size={20} /> Produkt hinzufügen

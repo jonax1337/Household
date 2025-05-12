@@ -204,7 +204,7 @@ const AddressPicker = ({ value, onChange, placeholder, label, disabled, required
         {isLoading && (
           <div style={{ 
             position: 'absolute', 
-            right: '12px', 
+            right: '8px', 
             top: '50%', 
             transform: 'translateY(-50%)',
             color: 'var(--text-secondary)'
@@ -216,7 +216,7 @@ const AddressPicker = ({ value, onChange, placeholder, label, disabled, required
         {isSelected && !isLoading && (
           <div style={{ 
             position: 'absolute', 
-            right: '12px', 
+            right: '8px', 
             top: '50%', 
             transform: 'translateY(-50%)',
             color: 'var(--success)'

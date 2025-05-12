@@ -240,7 +240,7 @@ const Dashboard = ({
   return (
     <div className="container fadeIn">
       {/* Header mit Haupttitel - nur auf dem Dashboard */}
-      <div className="card" style={{ marginBottom: '20px' }}>
+      <div className="card" style={{ marginBottom: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h1 style={{ margin: 0, fontSize: 'clamp(1.5rem, 4vw, 2.5rem)' }}>Household</h1>
         </div>
@@ -316,20 +316,20 @@ const Dashboard = ({
           <>
             {/* Wohnungsinfo */}
             <div className="card">
-              <h2 style={{ marginBottom: '10px' }}>{selectedApartment?.name || 'Keine Wohnung ausgewählt'}</h2>
+              <h2 style={{ marginBottom: '8px' }}>{selectedApartment?.name || 'Keine Wohnung ausgewählt'}</h2>
               <p style={{ color: 'var(--text-secondary)' }}>{selectedApartment?.address || ''}</p>
             </div>
             
-            <h2 style={{ marginBottom: '15px', fontSize: 'clamp(1.2rem, 3vw, 1.8rem)' }}>Übersicht</h2>
+            <h2 style={{ marginBottom: '16px', fontSize: 'clamp(1.2rem, 3vw, 1.8rem)' }}>Übersicht</h2>
             
             {/* Hauptinhalt des Dashboards in einem Grid-Layout */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginTop: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px', marginTop: '16px' }}>
               {/* Linke Spalte - Rangliste und bevorstehende Aufgaben */}
               <div className="dashboard-column">
                 {/* Rangliste der Mitbewohner mit Punkten */}
-                <div className="card" style={{ marginBottom: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                    <h3><FiAward style={{ marginRight: '8px', verticalAlign: 'middle', color: 'var(--primary)' }} /> Rangliste</h3>
+                <div className="card" style={{ marginBottom: '24px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h3><FiAward style={{ marginRight: '8px', verticalAlign: 'middle', color: 'var(--primary)', lineHeight: '0' }} /> Rangliste</h3>
                   </div>
                   
                   <div className="ranking-list">
@@ -338,7 +338,7 @@ const Dashboard = ({
                         <div key={user.id} className="ranking-item" style={{ 
                           display: 'flex', 
                           alignItems: 'center', 
-                          padding: '10px',
+                          padding: '8px',
                           borderRadius: '8px',
                           marginBottom: '8px',
                           backgroundColor: user.isCurrentUser ? 'var(--bg-hover)' : 'transparent',
@@ -379,9 +379,9 @@ const Dashboard = ({
                 </div>
                 
                 {/* Bevorstehende Aufgaben */}
-                <div className="card">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                    <h3><FiClock style={{ marginRight: '8px', verticalAlign: 'middle', color: 'var(--primary)' }} /> Bevorstehende Aufgaben</h3>
+                <div className="card" style={{ marginBottom: '0px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h3><FiClock style={{ marginRight: '8px', verticalAlign: 'middle', color: 'var(--primary)', lineHeight: '0' }} /> Aufgaben</h3>
                     <Link to="/cleaning" style={{ color: 'var(--text-secondary)', fontSize: '14px', textDecoration: 'none' }}>Alle anzeigen</Link>
                   </div>
                   
@@ -425,7 +425,7 @@ const Dashboard = ({
                             style={{ 
                               display: 'flex', 
                               alignItems: 'center', 
-                              padding: '12px',
+                              padding: '16px',
                               borderRadius: '8px',
                               marginBottom: '8px',
                               backgroundColor: 'var(--bg-secondary)',
@@ -482,8 +482,8 @@ const Dashboard = ({
               <div className="dashboard-column">
                 {/* Aktivitäten-Feed */}
                 <div className="card">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                    <h3><FiTrendingUp style={{ marginRight: '8px', verticalAlign: 'middle', color: 'var(--primary)' }} /> Aktivitäten</h3>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h3><FiTrendingUp style={{ marginRight: '8px', verticalAlign: 'middle', color: 'var(--primary)', lineHeight: '0' }} /> Aktivitäten</h3>
                   </div>
                   
                   <div className="activity-feed" style={{ maxHeight: '300px', overflowY: 'auto' }}>
@@ -528,7 +528,7 @@ const Dashboard = ({
                             style={{ 
                               display: 'flex', 
                               alignItems: 'flex-start', 
-                              marginBottom: '15px',
+                              marginBottom: '16px',
                               padding: '8px',
                               borderRadius: '8px',
                               transition: 'background-color 0.2s ease',
@@ -573,7 +573,7 @@ const Dashboard = ({
           </>
         )}
       {/* Zusätzlicher Div am Ende des Containers für Abstand zur Navbar */}
-      <div style={{ marginBottom: '95px' }}></div>
+      <div style={{ marginBottom: '96px' }}></div>
     </div>
   );
 };

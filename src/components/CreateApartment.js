@@ -72,7 +72,7 @@ const CreateApartment = ({ isOpen, onClose, onCreateApartment }) => {
   return createPortal(
     <div className="fullscreen-menu fadeIn">
       <div className="fullscreen-menu-content">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h2>Neue Wohnung erstellen</h2>
           <button 
             className="icon-button" 
@@ -84,14 +84,14 @@ const CreateApartment = ({ isOpen, onClose, onCreateApartment }) => {
         </div>
         
         {error && (
-          <div style={{ color: 'var(--danger-color)', marginBottom: '15px', padding: '10px', backgroundColor: 'rgba(var(--danger-rgb), 0.1)', borderRadius: 'var(--border-radius)' }}>
+          <div style={{ color: 'var(--danger-color)', marginBottom: '16px', padding: '8px', backgroundColor: 'rgba(var(--danger-rgb), 0.1)', borderRadius: 'var(--border-radius)' }}>
             {error}
           </div>
         )}
         
         <div className="form-group">
           <label htmlFor="apartmentName">
-            <FiHome style={{ marginRight: '5px' }} />
+            <FiHome style={{ marginRight: '8px' }} />
             Name der Wohnung
           </label>
           <input 
