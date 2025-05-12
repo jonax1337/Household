@@ -1,10 +1,36 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { chatService, authService } from '../services/api';
-import { FiSend, FiCheck, FiMessageCircle, FiLock, FiMoreVertical, FiEdit2, FiTrash2, FiX } from 'react-icons/fi';
+import { FiSend, FiCheck, FiMessageCircle, FiAlertCircle, FiLock, FiMoreVertical, FiEdit2, FiRadio, FiTrash2, FiX } from 'react-icons/fi';
 import NoApartmentSelected from './NoApartmentSelected';
 
 // CSS-Stile für die Chat-Komponente
 const styles = {
+    // Header Styles
+    stickyHeaderCard: {
+      position: 'sticky',
+      top: 'max(16px, env(safe-area-inset-top) + 16px)', // Berücksichtigt Safe Area für Geräte mit Notches
+      zIndex: 10,
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      borderRadius: 'var(--card-radius)',
+      border: 'var(--glass-border)',
+      background: 'var(--card-background)',
+      boxShadow: 'var(--shadow)',
+      transition: '0.3s',
+    },
+    headerContent: {
+      display: 'flex',
+      alignItems: 'center',
+      width: '100%',
+      gap: '8px'
+    },
+    headerTitle: {
+      margin: 0,
+      fontSize: 'clamp(1.5rem, 4vw, 2.5rem)',
+      fontWeight: 'bold',
+      color: 'var(--text-primary)'
+    },
   container: {
     padding: '0',
     display: 'flex',
@@ -862,46 +888,12 @@ const Chat = ({ apartmentId }) => {
   return (
     <div className="container"> {/* Standard-Container ohne spezielle Höhe */}
       {/* Hauptkarte für den Chat mit Abstand zur Navbar */}
-      <div className="card" style={{
-        display: 'flex', 
-        flexDirection: 'column', 
-        height: (() => {
-          // Responsive Höhenberechnung basierend auf Bildschirmgröße
-          const width = window.innerWidth;
-          const isMobile = width <= 768;
-          const isTablet = width > 768 && width <= 1024;
-          const isDesktop = width > 1024;
-          
-          if (isMobile) {
-            return 'calc(100vh - 205px)'; // Beibehalten des perfekten Mobile-Stylings
-          } else if (isTablet) {
-            return 'calc(100vh - 180px)'; // Etwas mehr Platz auf Tablets
-          } else {
-            // Für größere Bildschirme: Deutlich mehr Platz, aber noch mit Abstand zur Navigationsleiste
-            return 'calc(100vh - 150px)';
-          }
-        })(),
-        overflowY: 'hidden', // Verhindert doppeltes Scrollen
-        maxWidth: window.innerWidth > 1024 ? '1200px' : '100%', // Breitenbegrenzung für sehr große Bildschirme
-        margin: window.innerWidth > 1024 ? '0 auto' : '0' // Zentrieren auf großen Bildschirmen
-      }}>
-        {/* Card-Header mit Titel und Aktionsbutton */}
-        <div className="card-header" style={{
-          paddingBottom: '13px',
-          borderBottom: '1px solid var(--border)'
-          }}>
-          <div style={{
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
-            width: '100%'
-          }}>
-            {/* Linke Seite mit Titel */}
-            <div style={{display: 'flex', alignItems: 'center'}}>
-              <h1 style={{marginBottom: '0', marginRight: '12px'}}>Chat</h1>
-              
-              {/* Verschlüsselungs-Badge mit Tooltip */}
-              <div 
+      {/* Sticky Header */}
+      <div className="card card-header" style={styles.stickyHeaderCard}>
+        <div style={styles.headerContent}>
+          <h1 style={styles.headerTitle}>Chat</h1>
+          {/* Verschlüsselungs-Badge mit Tooltip */}
+          <div 
                 className='encryption-badge'
                 style={{
                   display: 'flex',
@@ -967,7 +959,7 @@ const Chat = ({ apartmentId }) => {
                   boxShadow: '0 3px 15px rgba(0, 0, 0, 0.07)',
                   width: '220px',
                   fontSize: '12px',
-                  zIndex: 100,
+                  zIndex: 9999,
                   textAlign: 'left',  // Linksbündiger Text ist besser lesbar
                   lineHeight: '1.5',
                   border: '1px solid var(--border)',
@@ -990,7 +982,6 @@ const Chat = ({ apartmentId }) => {
                 </div>
               </div>
             </div>
-            
             {/* Rechte Seite mit Status */}
             <div style={{
               display: 'flex',
@@ -1002,20 +993,42 @@ const Chat = ({ apartmentId }) => {
                 fontSize: '12px',
                 color: socketConnected ? 'var(--success)' : 'var(--error)',
                 transition: 'color 0.3s ease'
-              }}>
+              }}
+              >
                 <div style={{
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '50%',
-                  backgroundColor: 'currentColor',
-                  marginRight: '6px'
-                }}></div>
-                <span>{socketConnected ? 'Verbunden' : 'Offline'}</span>
+                  marginRight: '4px',
+                  lineHeight: 0
+                }}>
+                  {socketConnected ? <FiRadio size={16}/> : <FiAlertCircle size={16}/>}
+                </div>
+                <span>
+                  {socketConnected ? 'Verbunden' : 'Offline'}</span>
               </div>
             </div>
           </div>
-        </div>
-
+      <div className="card" style={{
+        display: 'flex', 
+        flexDirection: 'column', 
+        height: (() => {
+          // Responsive Höhenberechnung basierend auf Bildschirmgröße
+          const width = window.innerWidth;
+          const isMobile = width <= 768;
+          const isTablet = width > 768 && width <= 1024;
+          const isDesktop = width > 1024;
+          
+          if (isMobile) {
+            return 'calc(100vh - 250px)'; // Beibehalten des perfekten Mobile-Stylings
+          } else if (isTablet) {
+            return 'calc(100vh - 230px)'; // Etwas mehr Platz auf Tablets
+          } else {
+            // Für größere Bildschirme: Deutlich mehr Platz, aber noch mit Abstand zur Navigationsleiste
+            return 'calc(100vh - 230px)';
+          }
+        })(),
+        overflowY: 'hidden', // Verhindert doppeltes Scrollen
+        maxWidth: window.innerWidth > 1024 ? '1200px' : '100%', // Breitenbegrenzung für sehr große Bildschirme
+        margin: window.innerWidth > 1024 ? '0 auto' : '0' // Zentrieren auf großen Bildschirmen
+      }}>
         <div style={styles.messageContainer}>
           <div 
             className="messageList" 

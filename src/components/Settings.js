@@ -19,6 +19,8 @@ const styles = {
       borderRadius: 'var(--card-radius)',
       border: 'var(--glass-border)',
       background: 'var(--card-background)',
+      boxShadow: 'var(--shadow)',
+      transition: '0.3s',
     },
     headerContent: {
       display: 'flex',

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { FiPlus, FiCheck, FiTrash2, FiEdit, FiShoppingCart, FiX, FiChevronRight, FiArrowLeft, FiArchive, FiList, FiGrid } from 'react-icons/fi';
-import { FaSortAlphaDown, FaListUl } from 'react-icons/fa';
+import { FiPlus, FiCheck, FiTrash2, FiEdit, FiShoppingCart, FiX, FiChevronRight, FiArrowLeft, FiArchive, FiFilter } from 'react-icons/fi';
 import { shoppingService } from '../services/api';
 import NoApartmentSelected from './NoApartmentSelected';
 
@@ -11,7 +10,15 @@ const styles = {
   stickyHeaderCard: {
     position: 'sticky',
     top: 'max(16px, env(safe-area-inset-top) + 16px)', // Berücksichtigt Safe Area für Geräte mit Notches
-    zIndex: 10
+    zIndex: 10,
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderRadius: 'var(--card-radius)',
+    border: 'var(--glass-border)',
+    background: 'var(--card-background)',
+    boxShadow: 'var(--shadow)',
+    transition: '0.3s',
   },
   headerContent: {
     display: 'flex',
@@ -192,11 +199,6 @@ const ShoppingList = ({ selectedApartment }) => {
       100% { background-color: var(--card-background); }
     }
     
-    @keyframes fadeOut {
-      0% { opacity: 1; transform: translateY(0); }
-      100% { opacity: 0; transform: translateY(-10px); }
-    }
-    
     .shopping-item.checking {
       animation: pulse 0.7s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -206,14 +208,9 @@ const ShoppingList = ({ selectedApartment }) => {
       border-color: #605CFF;
       box-shadow: 0 0 0 4px rgba(96, 92, 255, 0.15);
     }
-  
+    
     .shopping-item.completed .item-checkbox svg {
       animation: bounce 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    }
-    
-    .shopping-item.fading-out {
-      animation: fadeOut 0.5s ease-out forwards;
-      pointer-events: none;
     }
   `;
   
@@ -350,7 +347,6 @@ const ShoppingList = ({ selectedApartment }) => {
 
   // State zum Verfolgen von Items, die gerade übergangsweise markiert werden
   const [checkingItems, setCheckingItems] = useState({});
-  const [fadingItems, setFadingItems] = useState({});
 
   // Long-Press-Funktionen für mobiles Bearbeiten
   const handleItemTouchStart = (item) => {
@@ -472,53 +468,27 @@ const ShoppingList = ({ selectedApartment }) => {
       const currentItems = [...items];
       const currentArchivedItems = [...archivedItems];
       
-      // Füge das Item zur fadingItems-Liste hinzu, wenn es auf erledigt gesetzt wird
-      if (!itemToToggle.completed) {
-        console.log('Item wird auf fading-out gesetzt:', itemId);
-        setFadingItems(prev => ({
-          ...prev,
-          [itemId]: true
-        }));
-      }
-      
       // Wir warten kurz mit der Statusaktualisierung, um die Animation anzuzeigen
       setTimeout(async () => {
         try {
-          // API-Aufruf nach einer kleinen Verzögerung
+          // API-Aufruf nach einer kleinen Verzo00fcgerung
           const updatedItem = await shoppingService.updateItemStatus(apartmentId, activeList, itemId, updatedStatus);
           
           // Prüfe, ob die API-Antwort erfolgreich war und das aktualisierte Item zurückgegeben hat
           if (updatedItem) {
-            // Wenn das Item erledigt wird, warten wir auf das Ende der Fade-Out-Animation
+            // State aktualisieren basierend auf dem Ergebnis der API
             if (updatedItem.completed) {
-              // Bei Items, die auf erledigt gesetzt werden, verzögern wir die Entfernung
-              // um die Fade-Out-Animation abzuschließen
-              setTimeout(() => {
-                // Item vom Server wurde als erledigt markiert
-                setItems(currentItems.filter(item => item.id !== itemId));
-                setArchivedItems([...currentArchivedItems, updatedItem]);
-                
-                // Entferne das Item aus fadingItems nach Abschluss der Animation
-                setFadingItems(prev => {
-                  const updated = { ...prev };
-                  delete updated[itemId];
-                  return updated;
-                });
-              }, 500); // Dauer der Fade-Out-Animation
+              // Item vom Server wurde als erledigt markiert
+              setItems(currentItems.filter(item => item.id !== itemId));
+              setArchivedItems([...currentArchivedItems, updatedItem]);
             } else {
-              // Item vom Server wurde als nicht erledigt markiert - sofort umschalten
+              // Item vom Server wurde als nicht erledigt markiert
               setArchivedItems(currentArchivedItems.filter(item => item.id !== itemId));
               setItems([...currentItems.filter(item => item.id !== itemId), updatedItem]);
             }
           }
         } catch (error) {
           console.error('Fehler beim Umschalten des Item-Status:', error);
-          // Bei Fehler das Item aus fadingItems entfernen
-          setFadingItems(prev => {
-            const updated = { ...prev };
-            delete updated[itemId];
-            return updated;
-          });
         } finally {
           // Nach Animation und API-Aufruf, entferne den checking-Status 
           setTimeout(() => {
@@ -529,7 +499,7 @@ const ShoppingList = ({ selectedApartment }) => {
             });
           }, 400); // Animation etwas länger laufen lassen
         }
-      }, 150); // Kurze Verzögerung für die Animations-Darstellung
+      }, 150); // Kurze Verzo00fcgerung für die Animations-Darstellung
       
     } catch (error) {
       console.error('Fehler beim Umschalten des Item-Status:', error);
@@ -1009,7 +979,7 @@ const ShoppingList = ({ selectedApartment }) => {
                       ...(sortOrder === 'alphabetical' ? styles.sortButtonActive : {})
                     }}
                   >
-                    {sortOrder === 'category' ? <FaListUl size={20} /> : <FaSortAlphaDown size={20} />}
+                    {sortOrder === 'category' ? <FiAlignLeft size={20} /> : <FiFilter size={20} />}
                   </button>
                 )}
                 <button 
@@ -1063,7 +1033,7 @@ const ShoppingList = ({ selectedApartment }) => {
                     return (
                       <div 
                         key={uniqueKey} 
-                        className={`shopping-item completed ${checkingItems[item.id] ? 'checking' : ''} ${fadingItems[item.id] ? 'fading-out' : ''}`} 
+                        className={`shopping-item completed ${checkingItems[item.id] ? 'checking' : ''}`} 
                         style={{ marginBottom: '10px' }}
                         onTouchStart={() => handleItemTouchStart(item)}
                         onTouchEnd={handleItemTouchEnd}
@@ -1161,7 +1131,7 @@ const ShoppingList = ({ selectedApartment }) => {
                                 return (
                                   <div 
                                     key={uniqueKey} 
-                                    className={`shopping-item ${item.completed ? 'completed' : ''} ${checkingItems[item.id] ? 'checking' : ''} ${fadingItems[item.id] ? 'fading-out' : ''}`} 
+                                    className={`shopping-item ${item.completed ? 'completed' : ''} ${checkingItems[item.id] ? 'checking' : ''}`} 
                                     style={{ marginBottom: '10px' }}
                                     onTouchStart={() => handleItemTouchStart(item)}
                                     onTouchEnd={handleItemTouchEnd}
@@ -1203,7 +1173,7 @@ const ShoppingList = ({ selectedApartment }) => {
                                 return (
                                   <div 
                                     key={uniqueKey} 
-                                    className={`shopping-item ${item.completed ? 'completed' : ''} ${checkingItems[item.id] ? 'checking' : ''} ${fadingItems[item.id] ? 'fading-out' : ''}`} 
+                                    className={`shopping-item ${item.completed ? 'completed' : ''} ${checkingItems[item.id] ? 'checking' : ''}`} 
                                     style={{ marginBottom: '10px' }}
                                     onTouchStart={() => handleItemTouchStart(item)}
                                     onTouchEnd={handleItemTouchEnd}
@@ -1247,7 +1217,7 @@ const ShoppingList = ({ selectedApartment }) => {
                         return (
                           <div 
                             key={uniqueKey} 
-                            className={`shopping-item ${item.completed ? 'completed' : ''} ${checkingItems[item.id] ? 'checking' : ''} ${fadingItems[item.id] ? 'fading-out' : ''}`} 
+                            className={`shopping-item ${item.completed ? 'completed' : ''} ${checkingItems[item.id] ? 'checking' : ''}`} 
                             style={{ marginBottom: '10px' }}
                             onTouchStart={() => handleItemTouchStart(item)}
                             onTouchEnd={handleItemTouchEnd}
