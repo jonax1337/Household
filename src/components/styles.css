@@ -1,5 +1,12 @@
 /* Stile für die neuen Komponenten */
 
+/* Transition-Definitionen für Komponenten */
+.task-item, .task-checkbox, .task-content, .task-title, .task-details, 
+.task-actions, .task-delete, .task-edit, .calendar-day, .day-task, 
+.view-selector, .calendar-header, .weekday, .calendar-grid, .roommate-card {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+}
+
 /* Gemeinsame Stile */
 .centered-content {
   display: flex;

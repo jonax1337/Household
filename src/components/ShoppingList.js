@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { FiPlus, FiCheck, FiTrash2, FiEdit, FiShoppingCart, FiX, FiChevronRight, FiArrowLeft, FiArchive, FiFilter } from 'react-icons/fi';
+import { FiPlus, FiCheck, FiTrash2, FiEdit, FiAlignLeft, FiShoppingCart, FiX, FiChevronRight, FiArrowLeft, FiArchive, FiFilter } from 'react-icons/fi';
 import { shoppingService } from '../services/api';
 import NoApartmentSelected from './NoApartmentSelected';
 

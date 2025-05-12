@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { FiSun, FiBell, FiCheckCircle, FiMoon, FiRefreshCw, FiHome, FiLogOut, FiEdit, FiTrash2, FiX, FiShare2, FiCopy, FiHeart, FiUser, FiSettings as FiGear, FiUsers, FiAward, FiUserX, FiDelete, FiInfo } from 'react-icons/fi';
+import { FiSun, FiBell, FiBellOff, FiCheckCircle, FiMoon, FiRefreshCw, FiHome, FiLogOut, FiEdit, FiTrash2, FiX, FiShare2, FiCopy, FiHeart, FiUser, FiSettings as FiGear, FiUsers, FiAward, FiUserX, FiDelete, FiInfo } from 'react-icons/fi';
 import AddressPicker from './AddressPicker';
 import { useTheme } from '../context/ThemeContext';
 import { authService, apartmentService, roommateService } from '../services/api';
@@ -1190,15 +1190,16 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
                   marginBottom: '15px',
                 }}>
                   <div>
-                    <p style={{ margin: '0', fontWeight: '500', fontSize: '0.95rem' }}>
-                      Status: {localStorage.getItem('notificationsOptOut') === 'true' ? 
-                        'Deaktiviert' : 
-                        (Notification.permission === 'granted' ? 'Aktiviert' : 'Nicht erlaubt')}
-                    </p>
-                    <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                      {localStorage.getItem('notificationsOptOut') === 'true' ? 
-                        'Du erhältst keine automatischen Benachrichtigungen mehr.' : 
-                        'Du wirst über alle wichtigen Ereignisse informiert.'}
+                    <p style={{ margin: '0', fontWeight: 'bold', fontSize: '0.95rem' }}>
+                      Status:&nbsp;
+                      <span style={{ 
+                        color: localStorage.getItem('notificationsOptOut') === 'true' ? 'var(--error)' : 
+                        (Notification.permission === 'granted' ? 'var(--success)' : 'var(--warning)')
+                      }}>
+                        {localStorage.getItem('notificationsOptOut') === 'true' ? 
+                          'Deaktiviert' : 
+                          (Notification.permission === 'granted' ? 'Aktiviert' : 'Nicht erlaubt')}
+                      </span>
                     </p>
                   </div>
                   
@@ -1222,6 +1223,7 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
                       borderRadius: '6px',
                       padding: '8px 14px',
                       fontSize: '13px',
+                      lineHeight: '0',
                       cursor: 'pointer',
                       transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                       boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
@@ -1236,104 +1238,8 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
                       e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
                     }}
                   >
-                    {localStorage.getItem('notificationsOptOut') === 'true' ? 'Aktivieren' : 'Deaktivieren'}
+                    {localStorage.getItem('notificationsOptOut') === 'true' ? <FiBell size={14} /> : <FiBellOff size={14} />}
                   </button>
-                </div>
-                
-                {/* Tools für Diagnose und Reset */}
-                <div style={{ 
-                  borderTop: '1px solid var(--border-color)', 
-                  paddingTop: '12px',
-                  marginTop: '5px' 
-                }}>
-                  <details style={{ fontSize: '14px' }}>
-                    <summary style={{ 
-                      cursor: 'pointer', 
-                      color: 'var(--text-secondary)',
-                      padding: '6px 0',
-                      fontWeight: '500'
-                    }}>
-                      Diagnose & Problembehandlung
-                    </summary>
-                    
-                    <div style={{ 
-                      padding: '10px 0 0 0', 
-                      display: 'flex', 
-                      flexWrap: 'wrap', 
-                      gap: '10px' 
-                    }}>
-                      {/* Reset-Button von NotificationPrompt */}
-                      <button
-                        onClick={() => {
-                          try {
-                            localStorage.setItem('resetServiceWorker', 'true');
-                            alert('Service Worker wurde zum Zurücksetzen markiert. Bitte lade die Seite neu.');
-                          } catch (e) {
-                            console.error('Fehler beim Zurücksetzen:', e);
-                          }
-                        }}
-                        style={{
-                          backgroundColor: 'var(--warning)',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '4px',
-                          padding: '6px 12px',
-                          fontSize: '13px',
-                          cursor: 'pointer',
-                          transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = 'translateY(-1px)';
-                          e.currentTarget.style.boxShadow = '0 3px 6px rgba(0,0,0,0.12)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = 'translateY(0)';
-                          e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-                        }}
-                      >
-                        Service Worker zurücksetzen
-                      </button>
-
-                      {/* Test-Benachrichtigung Button */}
-                      <button
-                        onClick={() => {
-                          if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-                            navigator.serviceWorker.controller.postMessage({
-                              type: 'TEST_NOTIFICATION'
-                            });
-                          } else {
-                            alert('Kein aktiver Service Worker gefunden');
-                          }
-                        }}
-                        style={{
-                          backgroundColor: 'var(--primary)',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '4px',
-                          padding: '6px 12px',
-                          fontSize: '13px',
-                          cursor: 'pointer',
-                          transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = 'translateY(-1px)';
-                          e.currentTarget.style.boxShadow = '0 3px 6px rgba(0,0,0,0.12)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = 'translateY(0)';
-                          e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-                        }}
-                      >
-                        Test-Benachrichtigung senden
-                      </button>
-                    </div>
-                  </details>
-                </div>
-                
-                <div style={{ marginTop: '10px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                  Diese Buttons sind nur für Testzwecke und können verwendet werden, um Browser-Benachrichtigungs-Probleme zu diagnostizieren.
                 </div>
               </>
             ) : (

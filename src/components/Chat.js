@@ -908,7 +908,8 @@ const Chat = ({ apartmentId }) => {
                   boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)',
                   cursor: 'pointer',
                   position: 'relative',
-                  transition: 'all 0.2s ease'
+                  transition: 'all 0.2s ease',
+                  zIndex: 9999
                 }}
                 onMouseEnter={(e) => {
                   const tooltip = e.currentTarget.querySelector('.encryption-tooltip');
@@ -992,17 +993,17 @@ const Chat = ({ apartmentId }) => {
                 alignItems: 'center',
                 fontSize: '12px',
                 color: socketConnected ? 'var(--success)' : 'var(--error)',
-                transition: 'color 0.3s ease'
               }}
               >
                 <div style={{
                   marginRight: '4px',
-                  lineHeight: 0
+                  lineHeight: 0,
+                  color: socketConnected ? 'var(--success)' : 'var(--error)',
                 }}>
                   {socketConnected ? <FiRadio size={16}/> : <FiAlertCircle size={16}/>}
                 </div>
                 <span>
-                  {socketConnected ? 'Verbunden' : 'Offline'}</span>
+                  {socketConnected ? '' : 'Offline'}</span>
               </div>
             </div>
           </div>
@@ -1014,15 +1015,14 @@ const Chat = ({ apartmentId }) => {
           const width = window.innerWidth;
           const isMobile = width <= 768;
           const isTablet = width > 768 && width <= 1024;
-          const isDesktop = width > 1024;
           
           if (isMobile) {
-            return 'calc(100vh - 250px)'; // Beibehalten des perfekten Mobile-Stylings
+            return 'calc(100vh - env(safe-area-inset-bottom) - 257px)'; // Beibehalten des perfekten Mobile-Stylings
           } else if (isTablet) {
-            return 'calc(100vh - 230px)'; // Etwas mehr Platz auf Tablets
+            return 'calc(100vh - env(safe-area-inset-bottom) - 250px)'; // Etwas mehr Platz auf Tablets
           } else {
             // Für größere Bildschirme: Deutlich mehr Platz, aber noch mit Abstand zur Navigationsleiste
-            return 'calc(100vh - 230px)';
+            return 'calc(100vh - env(safe-area-inset-bottom) - 250px)';
           }
         })(),
         overflowY: 'hidden', // Verhindert doppeltes Scrollen
