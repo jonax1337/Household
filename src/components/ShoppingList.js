@@ -171,6 +171,84 @@ const ShoppingList = ({ selectedApartment }) => {
   // Extrahiere apartmentId aus selectedApartment mit Fallback-Wert
   const apartmentId = selectedApartment?.id || 0;
   
+  // Animations-CSS direkt in der Komponente definieren mit keyframes
+  const animationStyles = `
+    @keyframes strikethrough {
+      0% { transform: scaleX(0); }
+      100% { transform: scaleX(1); }
+    }
+    
+    @keyframes bounce {
+      0%, 20% { transform: scale(0); }
+      40% { transform: scale(1.3); }
+      60% { transform: scale(0.9); }
+      80% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    
+    @keyframes pulse {
+      0% { background-color: var(--card-background); }
+      50% { background-color: rgba(96, 92, 255, 0.1); }
+      100% { background-color: var(--card-background); }
+    }
+    
+    @keyframes fadeOut {
+      0% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-10px); }
+    }
+    
+    .shopping-item.checking {
+      animation: pulse 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .shopping-item.checking .item-checkbox {
+      transform: scale(1.2);
+      border-color: #605CFF;
+      box-shadow: 0 0 0 4px rgba(96, 92, 255, 0.15);
+    }
+  
+    .shopping-item.completed .item-checkbox svg {
+      animation: bounce 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+    
+    .shopping-item.fading-out {
+      animation: fadeOut 0.5s ease-out forwards;
+      pointer-events: none;
+    }
+  `;
+  
+  // Debug-Info ausgeben
+  console.log('ShoppingList mit Animation gerendert, apartmentId:', apartmentId);
+  
+  // Style-Element ins DOM einfu00fcgen mit useEffect
+  useEffect(() => {
+    // Style-Element erstellen
+    const styleElement = document.createElement('style');
+    styleElement.id = 'shopping-list-animations';
+    styleElement.textContent = animationStyles;
+    
+    // Pru00fcfen, ob das Style-Element bereits existiert
+    const existingStyle = document.getElementById('shopping-list-animations');
+    if (existingStyle) {
+      // Falls es existiert, aktualisieren
+      existingStyle.textContent = animationStyles;
+      console.log('Animation-Styles aktualisiert');
+    } else {
+      // Sonst neu hinzufu00fcgen
+      document.head.appendChild(styleElement);
+      console.log('Animation-Styles ins DOM eingefu00fcgt');
+    }
+    
+    // Aufräumen beim Unmount der Komponente
+    return () => {
+      const styleToRemove = document.getElementById('shopping-list-animations');
+      if (styleToRemove) {
+        styleToRemove.remove();
+        console.log('Animation-Styles entfernt');
+      }
+    };
+  }, [animationStyles]);
+  
   const [showAddListForm, setShowAddListForm] = useState(false);
   const [showAddItemForm, setShowAddItemForm] = useState(false); // Neuer State für das Artikelformular-Modal
   const [lists, setLists] = useState([]);
@@ -270,6 +348,10 @@ const ShoppingList = ({ selectedApartment }) => {
     loadItems();
   }, [apartmentId, activeList]);
 
+  // State zum Verfolgen von Items, die gerade übergangsweise markiert werden
+  const [checkingItems, setCheckingItems] = useState({});
+  const [fadingItems, setFadingItems] = useState({});
+
   // Long-Press-Funktionen für mobiles Bearbeiten
   const handleItemTouchStart = (item) => {
     // Starte den Timer für Long-Press (500ms)
@@ -364,9 +446,23 @@ const ShoppingList = ({ selectedApartment }) => {
         return;
       }
 
-      // Vibration auslösen, wenn verfügbar (funktioniert auf mobilen Geräten)
+      // Setze zuerst den Item-Status auf 'checking' für die Animation
+      console.log('Item wird auf checking gesetzt:', itemId);
+      setCheckingItems(prev => {
+        const updated = { ...prev, [itemId]: true };
+        console.log('Aktualisierter checkingItems-State:', updated);
+        return updated;
+      });
+
+      // Vibration auslo00fcsen - kreative Muster für besseres haptisches Feedback
       if ('vibrate' in navigator) {
-        navigator.vibrate(50); // 50ms kurze Vibration
+        if (itemToToggle.completed) {
+          // Uncheck-Pattern: Ein kurzer Puls
+          navigator.vibrate(40);
+        } else {
+          // Check-Pattern: Zwei kurze Pulse für ein angenehmeres Feedback
+          navigator.vibrate([40, 30, 70]);
+        }
       }
       
       // Bestimme den neuen Status
@@ -376,26 +472,72 @@ const ShoppingList = ({ selectedApartment }) => {
       const currentItems = [...items];
       const currentArchivedItems = [...archivedItems];
       
-      // API-Aufruf vor der State-Aktualisierung
-      const updatedItem = await shoppingService.updateItemStatus(apartmentId, activeList, itemId, updatedStatus);
-      
-      // Prüfe, ob die API-Antwort erfolgreich war und das aktualisierte Item zurückgegeben hat
-      if (updatedItem) {
-        // State aktualisieren basierend auf dem Ergebnis der API
-        if (updatedItem.completed) {
-          // Item vom Server wurde als erledigt markiert
-          setItems(currentItems.filter(item => item.id !== itemId));
-          setArchivedItems([...currentArchivedItems, updatedItem]);
-        } else {
-          // Item vom Server wurde als nicht erledigt markiert
-          setArchivedItems(currentArchivedItems.filter(item => item.id !== itemId));
-          setItems([...currentItems.filter(item => item.id !== itemId), updatedItem]);
-        }
+      // Füge das Item zur fadingItems-Liste hinzu, wenn es auf erledigt gesetzt wird
+      if (!itemToToggle.completed) {
+        console.log('Item wird auf fading-out gesetzt:', itemId);
+        setFadingItems(prev => ({
+          ...prev,
+          [itemId]: true
+        }));
       }
+      
+      // Wir warten kurz mit der Statusaktualisierung, um die Animation anzuzeigen
+      setTimeout(async () => {
+        try {
+          // API-Aufruf nach einer kleinen Verzögerung
+          const updatedItem = await shoppingService.updateItemStatus(apartmentId, activeList, itemId, updatedStatus);
+          
+          // Prüfe, ob die API-Antwort erfolgreich war und das aktualisierte Item zurückgegeben hat
+          if (updatedItem) {
+            // Wenn das Item erledigt wird, warten wir auf das Ende der Fade-Out-Animation
+            if (updatedItem.completed) {
+              // Bei Items, die auf erledigt gesetzt werden, verzögern wir die Entfernung
+              // um die Fade-Out-Animation abzuschließen
+              setTimeout(() => {
+                // Item vom Server wurde als erledigt markiert
+                setItems(currentItems.filter(item => item.id !== itemId));
+                setArchivedItems([...currentArchivedItems, updatedItem]);
+                
+                // Entferne das Item aus fadingItems nach Abschluss der Animation
+                setFadingItems(prev => {
+                  const updated = { ...prev };
+                  delete updated[itemId];
+                  return updated;
+                });
+              }, 500); // Dauer der Fade-Out-Animation
+            } else {
+              // Item vom Server wurde als nicht erledigt markiert - sofort umschalten
+              setArchivedItems(currentArchivedItems.filter(item => item.id !== itemId));
+              setItems([...currentItems.filter(item => item.id !== itemId), updatedItem]);
+            }
+          }
+        } catch (error) {
+          console.error('Fehler beim Umschalten des Item-Status:', error);
+          // Bei Fehler das Item aus fadingItems entfernen
+          setFadingItems(prev => {
+            const updated = { ...prev };
+            delete updated[itemId];
+            return updated;
+          });
+        } finally {
+          // Nach Animation und API-Aufruf, entferne den checking-Status 
+          setTimeout(() => {
+            setCheckingItems(prev => {
+              const updated = { ...prev };
+              delete updated[itemId];
+              return updated;
+            });
+          }, 400); // Animation etwas länger laufen lassen
+        }
+      }, 150); // Kurze Verzögerung für die Animations-Darstellung
+      
     } catch (error) {
       console.error('Fehler beim Umschalten des Item-Status:', error);
-      // Hier könnte man die Anzeige wieder auf den ursprünglichen Zustand zurücksetzen
-      // und dem Benutzer eine Fehlermeldung anzeigen
+      setCheckingItems(prev => {
+        const updated = { ...prev };
+        delete updated[itemId];
+        return updated;
+      });
     }
   };
 
@@ -919,7 +1061,10 @@ const ShoppingList = ({ selectedApartment }) => {
                     console.log(`Archiviertes Item: ${item.name}, ID: ${item.id}, uniqueKey: ${uniqueKey}`);
                       
                     return (
-                      <div key={uniqueKey} className={`shopping-item completed`} style={{ marginBottom: '10px' }}
+                      <div 
+                        key={uniqueKey} 
+                        className={`shopping-item completed ${checkingItems[item.id] ? 'checking' : ''} ${fadingItems[item.id] ? 'fading-out' : ''}`} 
+                        style={{ marginBottom: '10px' }}
                         onTouchStart={() => handleItemTouchStart(item)}
                         onTouchEnd={handleItemTouchEnd}
                         onTouchMove={handleItemTouchMove}
@@ -1014,7 +1159,10 @@ const ShoppingList = ({ selectedApartment }) => {
                                   : `${item.id}-${category.id}-${index}`;
                                 
                                 return (
-                                  <div key={uniqueKey} className={`shopping-item ${item.completed ? 'completed' : ''}`} style={{ marginBottom: '10px' }}
+                                  <div 
+                                    key={uniqueKey} 
+                                    className={`shopping-item ${item.completed ? 'completed' : ''} ${checkingItems[item.id] ? 'checking' : ''} ${fadingItems[item.id] ? 'fading-out' : ''}`} 
+                                    style={{ marginBottom: '10px' }}
                                     onTouchStart={() => handleItemTouchStart(item)}
                                     onTouchEnd={handleItemTouchEnd}
                                     onTouchMove={handleItemTouchMove}
@@ -1053,7 +1201,10 @@ const ShoppingList = ({ selectedApartment }) => {
                                   : `${item.id}-custom-${categoryId}-${index}`;
                                   
                                 return (
-                                  <div key={uniqueKey} className={`shopping-item ${item.completed ? 'completed' : ''}`} style={{ marginBottom: '10px' }}
+                                  <div 
+                                    key={uniqueKey} 
+                                    className={`shopping-item ${item.completed ? 'completed' : ''} ${checkingItems[item.id] ? 'checking' : ''} ${fadingItems[item.id] ? 'fading-out' : ''}`} 
+                                    style={{ marginBottom: '10px' }}
                                     onTouchStart={() => handleItemTouchStart(item)}
                                     onTouchEnd={handleItemTouchEnd}
                                     onTouchMove={handleItemTouchMove}
@@ -1094,7 +1245,10 @@ const ShoppingList = ({ selectedApartment }) => {
                         console.log(`Alphabetische Ansicht - Item: ${item.name}, ID: ${item.id}, uniqueKey: ${uniqueKey}`);
                         
                         return (
-                          <div key={uniqueKey} className={`shopping-item ${item.completed ? 'completed' : ''}`} style={{ marginBottom: '10px' }}
+                          <div 
+                            key={uniqueKey} 
+                            className={`shopping-item ${item.completed ? 'completed' : ''} ${checkingItems[item.id] ? 'checking' : ''} ${fadingItems[item.id] ? 'fading-out' : ''}`} 
+                            style={{ marginBottom: '10px' }}
                             onTouchStart={() => handleItemTouchStart(item)}
                             onTouchEnd={handleItemTouchEnd}
                             onTouchMove={handleItemTouchMove}
