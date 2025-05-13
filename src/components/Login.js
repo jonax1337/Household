@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { authService } from '../services/api';
 import { FiEye, FiEyeOff, FiMail, FiLock, FiUser } from 'react-icons/fi';
+import { FcGoogle } from 'react-icons/fc';
 
 const Login = ({ onLoginSuccess, onSwitchToRegister }) => {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -20,6 +21,43 @@ const Login = ({ onLoginSuccess, onSwitchToRegister }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({...formData, [name]: value });
+  };
+
+  // Funktion zum Anmelden mit sozialen Medien
+  const handleSocialLogin = async (provider) => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      console.log(`%c[LOGIN] Starte OAuth-Login mit ${provider}`, 'color: #4CAF50; font-weight: bold;');
+      const response = await authService.oauthLogin(provider);
+      
+      if (response && response.token) {
+        // Alle Daten im localStorage löschen, um einen sauberen Start zu haben
+        console.log('%c[LOGIN] Lösche alles aus localStorage vor Login', 'color: #ff9800;');
+        localStorage.clear();
+        
+        // Token in localStorage speichern
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('isAuthenticated', 'true');
+        
+        // Speichere Benutzerinfos
+        if (response.user) {
+          console.log('%c[LOGIN] Speichere Benutzerdaten im localStorage:', 'color: #4CAF50; font-weight: bold;', response.user);
+          localStorage.setItem('currentUser', JSON.stringify(response.user));
+        }
+        
+        console.log('%c[LOGIN] OAuth-Login erfolgreich', 'color: #4CAF50; font-weight: bold;');
+        onLoginSuccess();
+      } else {
+        throw new Error(`Anmeldung mit ${provider} fehlgeschlagen: Ungültige Antwort vom Server`);
+      }
+    } catch (error) {
+      console.error(`${provider}-Login fehlgeschlagen:`, error);
+      setError(error.message || `Anmeldung mit ${provider} fehlgeschlagen. Bitte versuchen Sie es später erneut.`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleLogin = async (e) => {
@@ -256,9 +294,7 @@ const Login = ({ onLoginSuccess, onSwitchToRegister }) => {
                 {/* Google Button */}
                 <button
                   type="button"
-                  onClick={() => {
-                    setError('Google-Anmeldung wird später implementiert');
-                  }}
+                  onClick={() => handleSocialLogin('google')}
                   style={{
                     display: 'flex',
                     alignItems: 'center',

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { oauthLogin as oauthLoginProvider } from './oauthProviders';
 
 // API-Basis-URL - verwende dynamische Werte basierend auf der aktuellen Umgebung
 // Automatische Anpassung an das aktuelle Protokoll (http/https) und Host
@@ -216,7 +217,7 @@ export const authService = {
       console.log(`%c[AUTH] OAuth-Login mit ${provider}`, 'color: #4CAF50; font-weight: bold;');
       
       // Rufe die OAuth-Login-Funktion auf
-      const result = await oauthLogin(provider);
+      const result = await oauthLoginProvider(provider);
       
       if (result && result.token) {
         // Alte Daten löschen

@@ -2,10 +2,15 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const axios = require('axios');
 const { pool } = require('../config/db');
 
 // JWT Secret aus Umgebungsvariablen oder Fallback
 const JWT_SECRET = process.env.JWT_SECRET || 'household-app-secret-key';
+
+// Google OAuth Konfiguration
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '977146652564-vng4b46i585k4ntbsjj0q7r1kp85pqn5.apps.googleusercontent.com';
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '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';
 
 // Registrierung
 router.post('/register', async (req, res) => {
@@ -112,7 +117,10 @@ const verifyToken = (req, res, next) => {
 // Benutzerinformationen abrufen (geschützte Route)
 router.get('/user', verifyToken, async (req, res) => {
   try {
-    const [users] = await pool.query('SELECT id, name, email, created_at FROM users WHERE id = ?', [req.user.id]);
+    const [users] = await pool.query(
+      'SELECT id, name, email, oauth_provider, created_at FROM users WHERE id = ?', 
+      [req.user.id]
+    );
     
     if (users.length === 0) {
       return res.status(404).json({ message: 'Benutzer nicht gefunden' });
@@ -122,6 +130,78 @@ router.get('/user', verifyToken, async (req, res) => {
   } catch (error) {
     console.error('Fehler beim Abrufen des Benutzers:', error);
     res.status(500).json({ message: 'Serverfehler' });
+  }
+});
+
+// Google OAuth Authentifizierung
+router.post('/google', async (req, res) => {
+  const { code, redirectUri } = req.body;
+  
+  try {
+    // Token von Google erhalten
+    const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', {
+      code,
+      client_id: GOOGLE_CLIENT_ID,
+      client_secret: GOOGLE_CLIENT_SECRET,
+      redirect_uri: redirectUri,
+      grant_type: 'authorization_code'
+    });
+    
+    // Benutzerinfos von Google abrufen
+    const { access_token } = tokenResponse.data;
+    const userInfoResponse = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${access_token}` }
+    });
+    
+    const { sub: googleId, email, name } = userInfoResponse.data;
+    
+    // Prüfen, ob Benutzer bereits existiert
+    const [existingUsers] = await pool.query(
+      'SELECT * FROM users WHERE oauth_provider = ? AND oauth_id = ? OR email = ?', 
+      ['google', googleId, email]
+    );
+    
+    let userId;
+    
+    if (existingUsers.length > 0) {
+      // Benutzer existiert bereits
+      const user = existingUsers[0];
+      userId = user.id;
+      
+      // Der Benutzer existiert bereits - keine Aktion notwendig
+    } else {
+      // Neuen Benutzer anlegen
+      const [result] = await pool.query(
+        'INSERT INTO users (name, email, oauth_provider, oauth_id) VALUES (?, ?, ?, ?)',
+        [name, email, 'google', googleId]
+      );
+      
+      userId = result.insertId;
+      
+      // Standard-Theme-Einstellung erstellen
+      await pool.query(
+        'INSERT INTO user_settings (user_id, theme) VALUES (?, ?)',
+        [userId, 'system']
+      );
+    }
+    
+    // JWT erstellen
+    const token = jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '1d' });
+    
+    // Benutzerinfos abrufen
+    const [users] = await pool.query(
+      'SELECT id, name, email, oauth_provider FROM users WHERE id = ?', 
+      [userId]
+    );
+    
+    res.json({
+      message: 'Login mit Google erfolgreich',
+      token,
+      user: users[0]
+    });
+  } catch (error) {
+    console.error('Google Auth Fehler:', error);
+    res.status(500).json({ message: 'Fehler bei der Google-Authentifizierung' });
   }
 });
 
