@@ -1,5 +1,7 @@
 // Service Worker Version für Debug
-const SW_VERSION = 'v2.0.1';
+const SW_VERSION = 'v2.1.0';
+// Version als Meta-Daten für Update-Überprüfungen
+self.SW_VERSION = SW_VERSION;
 // Cache-Namen mit Versionierung für einfache Updates
 const CACHE_NAME = 'household-app' + SW_VERSION.toString();
 console.log('[ServiceWorker] Version ' + SW_VERSION + ' wird geladen');
@@ -63,6 +65,14 @@ self.addEventListener('message', (event) => {
       console.log('[ServiceWorker] Test-Benachrichtigung erfolgreich angezeigt');
     }).catch(err => {
       console.error('[ServiceWorker] Fehler bei Test-Benachrichtigung:', err);
+    });
+  } else if (event.data && event.data.type === 'CHECK_UPDATE') {
+    // Sende die aktuelle Service Worker Version zurück
+    console.log('[ServiceWorker] Antwort auf Update-Check mit Version:', self.SW_VERSION);
+    event.ports[0].postMessage({
+      type: 'UPDATE_CHECK_RESULT',
+      version: self.SW_VERSION,
+      timestamp: Date.now()
     });
   }
 });

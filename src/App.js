@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { authService, apartmentService } from './services/api';
 import { ThemeProvider } from './context/ThemeContext';
 import { registerServiceWorker } from './serviceWorkerRegistration';
+import UpdateNotification from './components/UpdateNotification';
 
 // Importiere modulare Komponenten
 import Login from './components/Login';
@@ -324,6 +325,9 @@ function App() {
         <div className="bg-shape bg-shape-1" data-speed="0.03"></div>
         <div className="bg-shape bg-shape-2" data-speed="0.05"></div>
         <div className="bg-shape bg-shape-3" data-speed="0.02"></div>
+        
+        {/* Update-Benachrichtigung für automatische Updates */}
+        <UpdateNotification />
         
         <Routes>
           {/* Öffentliche Routen */}
