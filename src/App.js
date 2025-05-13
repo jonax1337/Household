@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { authService, apartmentService } from './services/api';
 import { ThemeProvider } from './context/ThemeContext';
+import { SyncProvider } from './context/SyncContext';
 import { registerServiceWorker } from './serviceWorkerRegistration';
 
 // Importiere modulare Komponenten
@@ -319,161 +320,160 @@ function App() {
 
   return (
     <ThemeProvider>
-      <div className="app">
-        {/* Hintergrund-Shapes für Glasmorphismus-Effekt */}
-        <div className="bg-shape bg-shape-1" data-speed="0.03"></div>
-        <div className="bg-shape bg-shape-2" data-speed="0.05"></div>
-        <div className="bg-shape bg-shape-3" data-speed="0.02"></div>
-        
-        <Routes>
-          {/* Öffentliche Routen */}
-          <Route
-            path="/"
-            element={isLoggedIn ? <Navigate to="/dashboard" /> : <Navigate to="/login" />}
-          />
+      <SyncProvider>
+        <div className="app-container">
+          {/* Hintergrund-Shapes für Glasmorphismus-Effekt */}
+          <div className="bg-shape bg-shape-1" data-speed="0.03"></div>
+          <div className="bg-shape bg-shape-2" data-speed="0.05"></div>
+          <div className="bg-shape bg-shape-3" data-speed="0.02"></div>
           
-          <Route
-            path="/login"
-            element={
-              isLoggedIn ? (
-                <Navigate to="/dashboard" />
-              ) : (
-                <Login
-                  onSwitchToRegister={switchToRegister}
-                  onLoginSuccess={handleLoginSuccess}
-                />
-              )
-            }
-          />
+          <Routes>
+            <Route
+              path="/"
+              element={isLoggedIn ? <Navigate to="/dashboard" /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/login"
+              element={
+                isLoggedIn ? (
+                  <Navigate to="/dashboard" />
+                ) : (
+                  <Login
+                    onSwitchToRegister={switchToRegister}
+                    onLoginSuccess={handleLoginSuccess}
+                  />
+                )
+              }
+            />
+            <Route
+              path="/register"
+              element={
+                isLoggedIn ? (
+                  <Navigate to="/dashboard" />
+                ) : (
+                  <Register
+                    onSwitchToLogin={switchToLogin}
+                    onRegisterSuccess={handleRegisterSuccess}
+                  />
+                )
+              }
+            />
+
+            {/* Geschützte Routen */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute isLoggedIn={isLoggedIn}>
+                  <Dashboard {...appState} />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* CleaningSchedule Route */}
+            <Route
+              path="/cleaning"
+              element={
+                <ProtectedRoute isLoggedIn={isLoggedIn}>
+                  <CleaningSchedule
+                    selectedApartment={selectedApartment}
+                    loadUserApartments={loadUserApartments}
+                  />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* ShoppingList Route */}
+            <Route
+              path="/shopping"
+              element={
+                <ProtectedRoute isLoggedIn={isLoggedIn}>
+                  <ShoppingList
+                    selectedApartment={selectedApartment}
+                    loadUserApartments={loadUserApartments}
+                  />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Chat Route */}
+            <Route
+              path="/chat"
+              element={
+                <ProtectedRoute isLoggedIn={isLoggedIn}>
+                  <Chat
+                    apartmentId={selectedApartment?.id}
+                  />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Finances Route */}
+            <Route
+              path="/finances"
+              element={
+                <ProtectedRoute isLoggedIn={isLoggedIn}>
+                  <Finances
+                    selectedApartment={selectedApartment}
+                    loadUserApartments={loadUserApartments}
+                  />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Roommates Route */}
+            <Route
+              path="/roommates"
+              element={
+                <ProtectedRoute isLoggedIn={isLoggedIn}>
+                  <Roommates
+                    selectedApartment={selectedApartment}
+                    loadUserApartments={loadUserApartments}
+                    currentUser={currentUser}
+                  />
+                </ProtectedRoute>
+              }
+            />
           
-          <Route
-            path="/register"
-            element={
-              isLoggedIn ? (
-                <Navigate to="/dashboard" />
-              ) : (
-                <Register
-                  onSwitchToLogin={switchToLogin}
-                  onRegisterSuccess={handleRegisterSuccess}
-                />
-              )
-            }
-          />
-
-          {/* Geschützte Routen */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute isLoggedIn={isLoggedIn}>
-                <Dashboard {...appState} />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* CleaningSchedule Route */}
-          <Route
-            path="/cleaning"
-            element={
-              <ProtectedRoute isLoggedIn={isLoggedIn}>
-                <CleaningSchedule
-                  selectedApartment={selectedApartment}
-                  loadUserApartments={loadUserApartments}
-                />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* ShoppingList Route */}
-          <Route
-            path="/shopping"
-            element={
-              <ProtectedRoute isLoggedIn={isLoggedIn}>
-                <ShoppingList
-                  selectedApartment={selectedApartment}
-                  loadUserApartments={loadUserApartments}
-                />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Chat Route */}
-          <Route
-            path="/chat"
-            element={
-              <ProtectedRoute isLoggedIn={isLoggedIn}>
-                <Chat
-                  apartmentId={selectedApartment?.id}
-                />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Finances Route */}
-          <Route
-            path="/finances"
-            element={
-              <ProtectedRoute isLoggedIn={isLoggedIn}>
-                <Finances
-                  selectedApartment={selectedApartment}
-                  loadUserApartments={loadUserApartments}
-                />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Roommates Route */}
-          <Route
-            path="/roommates"
-            element={
-              <ProtectedRoute isLoggedIn={isLoggedIn}>
-                <Roommates
-                  selectedApartment={selectedApartment}
-                  loadUserApartments={loadUserApartments}
-                  currentUser={currentUser}
-                />
-              </ProtectedRoute>
-            }
-          />
+            {/* Settings Route - neu hinzugefügt */}
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute isLoggedIn={isLoggedIn}>
+                  <Settings
+                    handleLogout={handleLogout}
+                    currentUser={currentUser}
+                    selectedApartment={selectedApartment}
+                    setSelectedApartment={setSelectedApartment}
+                    apartments={apartments}
+                    setApartments={setApartments}
+                  />
+                </ProtectedRoute>
+              }
+            />
           
-          {/* Settings Route - neu hinzugefügt */}
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute isLoggedIn={isLoggedIn}>
-                <Settings
-                  handleLogout={handleLogout}
-                  currentUser={currentUser}
-                  selectedApartment={selectedApartment}
-                  setSelectedApartment={setSelectedApartment}
-                  apartments={apartments}
-                  setApartments={setApartments}
-                />
-              </ProtectedRoute>
-            }
-          />
+            {/* Login-Route */}
+            <Route
+              path="/login"
+              element={
+                isLoggedIn ? (
+                  <Navigate to="/dashboard" />
+                ) : (
+                  <Login 
+                    switchToRegister={switchToRegister}
+                    onLoginSuccess={handleLoginSuccess}
+                  />
+                )
+              }
+            />
           
-          {/* Login-Route */}
-          <Route
-            path="/login"
-            element={
-              isLoggedIn ? (
-                <Navigate to="/dashboard" />
-              ) : (
-                <Login 
-                  switchToRegister={switchToRegister}
-                  onLoginSuccess={handleLoginSuccess}
-                />
-              )
-            }
-          />
-          
-          {/* Fallback-Route */}
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
+            {/* Fallback-Route */}
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
         
         {/* Bottom Navigation - immer anzeigen, direkte Einbindung ohne Container */}
         <Navigation onTabChange={(path) => navigate(path)} />
-      </div>
+        </div>
+      </SyncProvider>
     </ThemeProvider>
   );
 }

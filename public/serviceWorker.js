@@ -1,8 +1,8 @@
 // Cache-Namen mit Versionierung für einfache Updates
-const CACHE_NAME = 'household-app-v2';
+const CACHE_NAME = 'household-app-v3';
 
 // Service Worker Version für Debug
-const SW_VERSION = 'v2.0.0';
+const SW_VERSION = 'v3.0.0';
 console.log('[ServiceWorker] Version ' + SW_VERSION + ' wird geladen');
 
 // Bestimme die Basis-URL basierend auf der aktuellen Umgebung
@@ -60,6 +60,39 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
+  
+  // Periodic Sync registrieren, wenn verfügbar
+  if ('periodicSync' in self.registration) {
+    const registerPeriodicSync = async () => {
+      try {
+        // Bestehende Tags prüfen und ggf. alte entfernen
+        const tags = await self.registration.periodicSync.getTags();
+        console.log('[ServiceWorker] Bestehende Periodic Sync Tags:', tags);
+        
+        // Verschiedene Periodic Sync Intervalle für verschiedene Datentypen
+        const syncConfig = [
+          { tag: 'sync-tasks', minInterval: 60 * 15 },        // Alle 15 Minuten
+          { tag: 'sync-shopping', minInterval: 60 * 30 },      // Alle 30 Minuten
+          { tag: 'sync-transactions', minInterval: 60 * 60 },   // Stündlich
+          { tag: 'sync-messages', minInterval: 60 * 3 }         // Alle 3 Minuten
+        ];
+        
+        // Registriere alle Sync-Tags
+        for (const config of syncConfig) {
+          await self.registration.periodicSync.register(config.tag, {
+            minInterval: config.minInterval * 1000 // In Millisekunden umwandeln
+          });
+          console.log(`[ServiceWorker] Periodic Sync registriert: ${config.tag}`);
+        }
+      } catch (error) {
+        console.error('[ServiceWorker] Fehler beim Registrieren von Periodic Sync:', error);
+      }
+    };
+    
+    registerPeriodicSync();
+  } else {
+    console.log('[ServiceWorker] Periodic Sync wird vom Browser nicht unterstützt');
+  }
 });
 
 // Handler für Messages vom Client (z.B. skipWaiting)
@@ -246,3 +279,207 @@ self.addEventListener('notificationclick', (event) => {
     })
   );
 });
+
+// Background Sync Event Handler
+self.addEventListener('sync', async (event) => {
+  console.log('[ServiceWorker] Background Sync Event:', event.tag);
+  
+  if (event.tag.startsWith('sync-')) {
+    // Extrahiere den Typ aus dem Tag (z.B. 'tasks' aus 'sync-tasks')
+    const syncType = event.tag.replace('sync-', '');
+    
+    event.waitUntil(processSyncEvent(syncType));
+  }
+});
+
+// Periodic Sync Event Handler
+self.addEventListener('periodicsync', async (event) => {
+  console.log('[ServiceWorker] Periodic Sync Event:', event.tag);
+  
+  if (event.tag.startsWith('sync-')) {
+    // Extrahiere den Typ aus dem Tag (z.B. 'tasks' aus 'sync-tasks')
+    const syncType = event.tag.replace('sync-', '');
+    
+    event.waitUntil(processSyncEvent(syncType));
+  }
+});
+
+// Gemeinsame Funktion zur Bearbeitung von Sync-Events
+async function processSyncEvent(syncType) {
+  console.log(`[ServiceWorker] Verarbeite ${syncType} Sync`);
+  
+  // Holen der zu synchronisierenden Daten aus IndexedDB
+  try {
+    // Öffne IndexedDB
+    const db = await openDatabase();
+    
+    // Hole ungesendete Daten aus der entsprechenden Store
+    const pendingItems = await getPendingItems(db, syncType);
+    
+    if (pendingItems.length === 0) {
+      console.log(`[ServiceWorker] Keine ausstehenden ${syncType} zum Synchronisieren`);
+      return;
+    }
+    
+    console.log(`[ServiceWorker] Synchronisiere ${pendingItems.length} ${syncType}`);
+    
+    // API-Endpunkte basierend auf dem Synchronisationstyp
+    const apiEndpoints = {
+      'tasks': '/api/tasks/sync',
+      'shopping': '/api/shopping/sync',
+      'transactions': '/api/financial/sync',
+      'messages': '/api/messages/sync'
+    };
+    
+    // Synchronisiere mit dem Server
+    if (apiEndpoints[syncType]) {
+      const response = await fetch(apiEndpoints[syncType], {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          items: pendingItems,
+          timestamp: Date.now()
+        })
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log(`[ServiceWorker] ${syncType} erfolgreich synchronisiert:`, result);
+        
+        // Markiere Elemente als synchronisiert
+        await markItemsAsSynced(db, syncType, pendingItems.map(item => item.id));
+        
+        // Benachrichtigung an Clients senden, dass Daten aktualisiert wurden
+        self.clients.matchAll().then(clients => {
+          clients.forEach(client => {
+            client.postMessage({
+              type: 'SYNC_COMPLETED',
+              syncType: syncType,
+              timestamp: Date.now()
+            });
+          });
+        });
+        
+        // Optional: Zeige eine Benachrichtigung
+        if (result.showNotification) {
+          await self.registration.showNotification('Synchronisierung abgeschlossen', {
+            body: `${pendingItems.length} ${syncType} wurden synchronisiert`,
+            icon: '/icons/android-chrome-192x192.png'
+          });
+        }
+      } else {
+        throw new Error(`Server-Fehler: ${response.status}`);
+      }
+    }
+  } catch (error) {
+    console.error(`[ServiceWorker] Fehler bei ${syncType} Sync:`, error);
+    // Sync war nicht erfolgreich, wird automatisch später wiederholt
+    throw error; // Wichtig: Error werfen, damit Browser weiß, dass Sync fehlgeschlagen ist
+  }
+}
+
+// IndexedDB-Zugriffsfunktionen
+async function openDatabase() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('household-offline-db', 1);
+    
+    request.onerror = event => {
+      console.error('[ServiceWorker] IndexedDB Fehler:', event.target.error);
+      reject(event.target.error);
+    };
+    
+    request.onsuccess = event => {
+      resolve(event.target.result);
+    };
+    
+    // Falls die Datenbank noch nicht existiert oder aktualisiert werden muss
+    request.onupgradeneeded = event => {
+      const db = event.target.result;
+      
+      // Stores für verschiedene Datentypen erstellen
+      if (!db.objectStoreNames.contains('tasks')) {
+        db.createObjectStore('tasks', { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains('shopping')) {
+        db.createObjectStore('shopping', { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains('transactions')) {
+        db.createObjectStore('transactions', { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains('messages')) {
+        db.createObjectStore('messages', { keyPath: 'id' });
+      }
+    };
+  });
+}
+
+async function getPendingItems(db, storeName) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(storeName, 'readonly');
+    const store = transaction.objectStore(storeName);
+    const request = store.getAll();
+    
+    request.onsuccess = event => {
+      // Filtere nach ungesendeten Items (syncStatus: 'pending')
+      const items = event.target.result.filter(item => item.syncStatus === 'pending');
+      resolve(items);
+    };
+    
+    request.onerror = event => {
+      reject(event.target.error);
+    };
+  });
+}
+
+async function markItemsAsSynced(db, storeName, itemIds) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(storeName, 'readwrite');
+    const store = transaction.objectStore(storeName);
+    let remaining = itemIds.length;
+    let success = true;
+    
+    // Für jedes Item Status aktualisieren
+    itemIds.forEach(id => {
+      const getRequest = store.get(id);
+      
+      getRequest.onsuccess = event => {
+        const item = event.target.result;
+        if (item) {
+          item.syncStatus = 'synced';
+          item.lastSyncedAt = Date.now();
+          
+          const updateRequest = store.put(item);
+          
+          updateRequest.onsuccess = () => {
+            remaining--;
+            if (remaining === 0) resolve(success);
+          };
+          
+          updateRequest.onerror = event => {
+            console.error('[ServiceWorker] Fehler beim Markieren als synchronisiert:', event.target.error);
+            success = false;
+            remaining--;
+            if (remaining === 0) resolve(success);
+          };
+        } else {
+          remaining--;
+          if (remaining === 0) resolve(success);
+        }
+      };
+      
+      getRequest.onerror = event => {
+        console.error('[ServiceWorker] Fehler beim Abrufen des Items:', event.target.error);
+        success = false;
+        remaining--;
+        if (remaining === 0) resolve(success);
+      };
+    });
+    
+    // Falls keine Items übergeben wurden
+    if (itemIds.length === 0) {
+      resolve(true);
+    }
+  });
+}
