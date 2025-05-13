@@ -480,6 +480,8 @@ const Dashboard = ({
               
               {/* Rechte Spalte - Pinnwand und Aktivitäten-Feed */}
               <div className="dashboard-column">
+              <div className="card">
+              </div>
                 {/* Aktivitäten-Feed */}
                 <div className="card">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>

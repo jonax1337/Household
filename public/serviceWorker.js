@@ -1,8 +1,7 @@
-// Cache-Namen mit Versionierung für einfache Updates
-const CACHE_NAME = 'household-app-v2';
-
 // Service Worker Version für Debug
-const SW_VERSION = 'v2.0.0';
+const SW_VERSION = 'v2.0.1';
+// Cache-Namen mit Versionierung für einfache Updates
+const CACHE_NAME = 'household-app' + SW_VERSION.toString();
 console.log('[ServiceWorker] Version ' + SW_VERSION + ' wird geladen');
 
 // Bestimme die Basis-URL basierend auf der aktuellen Umgebung
@@ -15,30 +14,11 @@ const getBaseUrl = () => {
 const baseUrl = getBaseUrl();
 console.log('[ServiceWorker] Verwende Base-URL:', baseUrl || '/');
 
-// Cache-URLs mit korrigierten Pfaden für Render.com
-const URLS_TO_CACHE = [
-  baseUrl + '/',
-  baseUrl + '/index.html',
-  baseUrl + 'site.webmanifest', // Ohne führenden Slash
-  baseUrl + 'icons/android-chrome-192x192.png', // Ohne führenden Slash
-  baseUrl + 'icons/android-chrome-512x512.png', // Ohne führenden Slash
-  baseUrl + 'icons/apple-touch-icon.png', // Ohne führenden Slash
-  baseUrl + 'icons/favicon-16x16.png', // Ohne führenden Slash
-  baseUrl + 'icons/favicon-32x32.png' // Ohne führenden Slash
-];
-
 // Bei Installation des ServiceWorkers
 self.addEventListener('install', (event) => {
   console.log('[ServiceWorker] Install-Event');
   // skipWaiting erzwingt sofortige Aktivierung ohne Neuladen
   self.skipWaiting();
-  
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('Cache geöffnet');
-      return cache.addAll(URLS_TO_CACHE);
-    })
-  );
 });
 
 // Bei Aktivierung des ServiceWorkers (nach Installation)
