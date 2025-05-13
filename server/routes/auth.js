@@ -9,8 +9,8 @@ const { pool } = require('../config/db');
 const JWT_SECRET = process.env.JWT_SECRET || 'household-app-secret-key';
 
 // Google OAuth Konfiguration
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '977146652564-vng4b46i585k4ntbsjj0q7r1kp85pqn5.apps.googleusercontent.com';
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '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';
+const GOOGLE_CLIENT_ID = '977146652564-vng4b46i585k4ntbsjj0q7r1kp85pqn5.apps.googleusercontent.com';
+const GOOGLE_CLIENT_SECRET = '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';
 
 // Registrierung
 router.post('/register', async (req, res) => {
@@ -135,9 +135,20 @@ router.get('/user', verifyToken, async (req, res) => {
 
 // Google OAuth Authentifizierung
 router.post('/google', async (req, res) => {
+  console.log('[SERVER] Google OAuth-Anfrage erhalten:', req.body);
   const { code, redirectUri } = req.body;
   
+  if (!code || !redirectUri) {
+    console.error('[SERVER] Fehlende Parameter in der Google-Anfrage');
+    return res.status(400).json({ message: 'Code und redirectUri sind erforderlich' });
+  }
+  
   try {
+    console.log('[SERVER] Tausche Auth-Code gegen Token bei Google...');
+    console.log(`[SERVER] Verwende Client-ID: ${GOOGLE_CLIENT_ID.substring(0, 10)}...`);
+    console.log(`[SERVER] Verwende Client-Secret: ${GOOGLE_CLIENT_SECRET.substring(0, 5)}...`);
+    console.log(`[SERVER] Verwende Redirect-URI: ${redirectUri}`);
+    
     // Token von Google erhalten
     const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', {
       code,
@@ -147,13 +158,24 @@ router.post('/google', async (req, res) => {
       grant_type: 'authorization_code'
     });
     
+    console.log('[SERVER] Token-Antwort von Google erhalten:', tokenResponse.status);
+    
     // Benutzerinfos von Google abrufen
     const { access_token } = tokenResponse.data;
+    if (!access_token) {
+      console.error('[SERVER] Kein access_token in der Google-Antwort:', tokenResponse.data);
+      return res.status(400).json({ message: 'Ungültige Antwort von Google Auth' });
+    }
+    
+    console.log('[SERVER] Rufe Nutzerinformationen von Google ab...');
     const userInfoResponse = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
       headers: { Authorization: `Bearer ${access_token}` }
     });
     
+    console.log('[SERVER] Nutzerinformationen erhalten:', userInfoResponse.status);
+    
     const { sub: googleId, email, name } = userInfoResponse.data;
+    console.log('[SERVER] Nutzerinformationen extrahiert:', { googleId: googleId?.substring(0, 5), email, name });
     
     // Prüfen, ob Benutzer bereits existiert
     const [existingUsers] = await pool.query(
@@ -200,8 +222,18 @@ router.post('/google', async (req, res) => {
       user: users[0]
     });
   } catch (error) {
-    console.error('Google Auth Fehler:', error);
-    res.status(500).json({ message: 'Fehler bei der Google-Authentifizierung' });
+    console.error('[SERVER] Google Auth Fehler:', error.message);
+    if (error.response) {
+      console.error('[SERVER] Fehlerantwort von Google:', {
+        status: error.response.status,
+        data: error.response.data
+      });
+    }
+    res.status(500).json({ 
+      message: 'Fehler bei der Google-Authentifizierung', 
+      error: error.message,
+      details: error.response?.data || 'Keine Details verfügbar'
+    });
   }
 });
 

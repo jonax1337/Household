@@ -16,7 +16,8 @@ const appleConfig = {
 // Google Sign-In Konfiguration
 const googleConfig = {
   clientId: process.env.REACT_APP_GOOGLE_CLIENT_ID || '977146652564-vng4b46i585k4ntbsjj0q7r1kp85pqn5.apps.googleusercontent.com',
-  redirectUri: getRedirectUri('/auth/google/callback'),
+  // Feste Redirect-URI verwenden, um sicherzustellen, dass sie mit der in der Google Console konfigurierten URI übereinstimmt
+  redirectUri: window.location.origin + '/auth/google/callback',
   scope: 'profile email'
 };
 
@@ -67,6 +68,8 @@ const normalizeUserData = (provider, userData) => {
 // Google Sign-In Funktion
 const startGoogleSignIn = () => {
   return new Promise((resolve, reject) => {
+    console.log('[OAUTH] Starting Google Sign-In with redirect URI:', googleConfig.redirectUri);
+    
     // Google OAuth Parametergenerierung
     const params = new URLSearchParams({
       client_id: googleConfig.clientId,
@@ -107,7 +110,12 @@ const startGoogleSignIn = () => {
         const currentUrl = popup.location.href;
         
         // Prüfen, ob die Callback-URL erreicht wurde
-        if (currentUrl.startsWith(googleConfig.redirectUri)) {
+        console.log('[OAUTH] Aktuelle Popup-URL:', currentUrl);
+        console.log('[OAUTH] Vergleich mit:', googleConfig.redirectUri);
+        
+        // Stattdessen prüfen wir nur, ob '/auth/google/callback' im Pfad enthalten ist, nicht die volle URL
+        if (currentUrl.includes('/auth/google/callback')) {
+          console.log('[OAUTH] Callback-URL erkannt, extrahiere Parameter');
           clearInterval(intervalId);
           popup.close();
           
@@ -115,6 +123,7 @@ const startGoogleSignIn = () => {
           const urlObj = new URL(currentUrl);
           const code = urlObj.searchParams.get('code');
           const error = urlObj.searchParams.get('error');
+          console.log('[OAUTH] Code vorhanden:', !!code, 'Error vorhanden:', !!error);
           
           if (error) {
             reject(new Error(`Google-Authentifizierung fehlgeschlagen: ${error}`));
@@ -154,7 +163,10 @@ export const oauthLogin = async (provider) => {
     }
     
     // API-Aufruf an den Server, um das Token zu validieren und einen JWT zu erhalten
-    const apiUrl = `${process.env.REACT_APP_API_URL || ''}/api/auth/${provider}`;
+    console.log('[OAUTH] Sende Anfrage an Backend...');
+    const baseUrl = process.env.REACT_APP_API_URL || window.location.origin;
+    const apiUrl = `${baseUrl}/api/auth/${provider}`;
+    console.log(`[OAUTH] API-URL: ${apiUrl}`);
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
