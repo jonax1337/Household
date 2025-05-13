@@ -1148,10 +1148,10 @@ const Chat = ({ apartmentId }) => {
                             style={{
                               ...styles.avatar,
                               ...styles.myAvatar,
-                              backgroundColor: `hsl(200, 70%, 50%)` // Feste Farbe fu00fcr eigene Nachrichten
+                              backgroundColor: currentUser?.profile_color || `hsl(200, 70%, 50%)` // Verwende benutzerdefinierte Farbe oder Fallback
                             }}
                           >
-                            {(currentUser?.name || 'Ich').charAt(0).toUpperCase()}
+                            {(currentUser?.initials || (currentUser?.name || 'Ich').charAt(0)).toUpperCase()}
                           </div>
                         ) : (
                           <div 
@@ -1159,10 +1159,10 @@ const Chat = ({ apartmentId }) => {
                             style={{
                               ...styles.avatar, 
                               ...styles.otherAvatar,
-                              backgroundColor: `hsl(${(parseInt(message.user_id) * 40) % 360}, 70%, 60%)`
+                              backgroundColor: message.user?.profile_color || `hsl(${(parseInt(message.user_id) * 40) % 360}, 70%, 60%)` // Verwende benutzerdefinierte Farbe oder Fallback
                             }}
                           >
-                            {(message.user?.name || 'U').charAt(0).toUpperCase()}
+                            {(message.user?.initials || (message.user?.name || 'U').charAt(0)).toUpperCase()}
                           </div>
                         )}
                         

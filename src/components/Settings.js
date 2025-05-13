@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { FiSun, FiBell, FiBellOff, FiCheckCircle, FiMoon, FiRefreshCw, FiHome, FiLogOut, FiEdit, FiTrash2, FiX, FiShare2, FiCopy, FiHeart, FiUser, FiSettings as FiGear, FiUsers, FiAward, FiUserX, FiDelete, FiInfo } from 'react-icons/fi';
+import { FiSun, FiBell, FiBellOff, FiCheckCircle, FiMoon, FiRefreshCw, FiHome, FiLogOut, FiEdit, FiTrash2, FiX, FiShare2, FiCopy, FiHeart, FiUser, FiSettings as FiGear, FiUsers, FiAward, FiUserX, FiDelete, FiInfo, FiSave } from 'react-icons/fi';
 import AddressPicker from './AddressPicker';
 import { useTheme } from '../context/ThemeContext';
-import { authService, apartmentService, roommateService } from '../services/api';
+import { authService, apartmentService, roommateService, userService } from '../services/api';
 import NotificationPrompt from './NotificationPrompt';
 
 // CSS-Stile für die ShoppingList-Komponente
@@ -40,6 +40,13 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
   // Eigenen lokalen State für currentUser, falls der Prop nicht gesetzt ist
   const [localCurrentUser, setLocalCurrentUser] = useState(null);
   
+  // State für Profilbild-Einstellungen
+  const [initials, setInitials] = useState('');
+  const [profileColor, setProfileColor] = useState('#4a90e2');
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [profileSaveSuccess, setProfileSaveSuccess] = useState(false);
+  const [profileSaveError, setProfileSaveError] = useState('');
+  
   // Effektiver currentUser - entweder aus Props oder lokal
   const currentUser = propCurrentUser || localCurrentUser;
   
@@ -55,12 +62,97 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
           const userData = JSON.parse(storedUser);
           console.log('%c[SETTINGS] Lade Benutzerdaten aus localStorage:', 'color: #4CAF50;', userData);
           setLocalCurrentUser(userData);
+          
+          // Initialisiere die Profilbild-Einstellungen mit den Werten aus dem localStorage
+          if (userData.initials) {
+            setInitials(userData.initials);
+          } else if (userData.name) {
+            // Falls keine Initialien gesetzt sind, verwende den ersten Buchstaben des Namens
+            setInitials(userData.name.charAt(0).toUpperCase());
+          }
+          
+          if (userData.profile_color) {
+            setProfileColor(userData.profile_color);
+          }
         }
       } catch (error) {
         console.error('Fehler beim Laden der Benutzerdaten aus localStorage:', error);
       }
+    } else {
+      // Falls currentUser über Props kommt, initialisiere die Profilbild-Einstellungen
+      if (propCurrentUser.initials) {
+        setInitials(propCurrentUser.initials);
+      } else if (propCurrentUser.name) {
+        setInitials(propCurrentUser.name.charAt(0).toUpperCase());
+      }
+      
+      if (propCurrentUser.profile_color) {
+        setProfileColor(propCurrentUser.profile_color);
+      }
     }
+    
+    // Lade aktuelle Profilsettings vom Server
+    loadProfileSettings();
   }, [propCurrentUser]);
+  
+  // Funktion zum Laden der Profilbild-Einstellungen von der API
+  const loadProfileSettings = async () => {
+    try {
+      console.log('%c[SETTINGS] Lade Benutzerprofileinstellungen vom Server', 'color: #0066aa;');
+      const data = await userService.getProfileSettings();
+      console.log('%c[SETTINGS] Benutzerprofileinstellungen erfolgreich geladen:', 'color: #00aa66;', data);
+      
+      if (data) {
+        // Setze die Initialien, falls vorhanden
+        if (data.initials) {
+          setInitials(data.initials);
+        }
+        
+        // Setze die Profilfarbe, falls vorhanden
+        if (data.profile_color) {
+          setProfileColor(data.profile_color);
+        }
+      }
+    } catch (error) {
+      console.error('Fehler beim Laden der Benutzerprofileinstellungen:', error);
+    }
+  };
+  
+  // Funktion zum Speichern der Profilbild-Einstellungen
+  const saveProfileSettings = async () => {
+    try {
+      setIsSavingProfile(true);
+      setProfileSaveError('');
+      setProfileSaveSuccess(false);
+      
+      console.log('%c[SETTINGS] Speichere Benutzerprofileinstellungen', 'color: #0066aa;', { initials, profile_color: profileColor });
+      
+      // Rufe den userService auf, um die Einstellungen zu speichern
+      const data = await userService.updateProfileSettings({ 
+        initials, 
+        profile_color: profileColor 
+      });
+      
+      console.log('%c[SETTINGS] Benutzerprofileinstellungen erfolgreich gespeichert:', 'color: #00aa66;', data);
+      
+      // Aktualisiere den lokalen State für den Benutzer
+      if (localCurrentUser) {
+        setLocalCurrentUser(prev => ({
+          ...prev,
+          initials,
+          profile_color: profileColor
+        }));
+      }
+      
+      setProfileSaveSuccess(true);
+      setTimeout(() => setProfileSaveSuccess(false), 3000);
+    } catch (error) {
+      console.error('Fehler beim Speichern der Benutzerprofileinstellungen:', error);
+      setProfileSaveError(error.message || 'Fehler beim Speichern der Einstellungen');
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
   
   // Funktion zum Abrufen des Einladungscodes
   const fetchInviteCode = async (apartmentId) => {
@@ -961,12 +1053,12 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
                           transition: 'transform 0.2s ease, box-shadow 0.2s ease'
                         }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            {/* Avatar (Platzhalter) */}
+                            {/* Avatar mit individueller Profilfarbe und Initialien */}
                             <div style={{
                               width: '40px',
                               height: '40px',
                               borderRadius: '50%',
-                              backgroundColor: 'var(--primary)',
+                              backgroundColor: roommate.profile_color || 'var(--primary)',
                               color: 'white',
                               display: 'flex',
                               alignItems: 'center',
@@ -974,7 +1066,7 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
                               fontWeight: 'bold',
                               boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
                             }}>
-                              {roommate.name.charAt(0).toUpperCase()}
+                              {roommate.initials || roommate.name.charAt(0).toUpperCase()}
                             </div>
                             
                             {/* Name mit Owner-Badge */}
@@ -1261,6 +1353,147 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
         
         <div className="card settings-section">
           <h3>Konto</h3>
+          
+          {/* Profilbild-Einstellungen */}
+          <div style={{ marginBottom: '20px' }}>
+            <h4 style={{ marginTop: '5px', marginBottom: '15px', fontSize: '1rem' }}>Profilbild</h4>
+            
+            {/* Initials Input */}
+            <div style={{ marginBottom: '15px' }}>
+              <label htmlFor="userInitials" style={{ display: 'block', marginBottom: '5px', fontSize: '0.9rem' }}>Initialien (max. 2 Zeichen)</label>
+              <input 
+                id="userInitials" 
+                type="text" 
+                maxLength="2"
+                className="input"
+                placeholder={currentUser?.name?.charAt(0).toUpperCase() || "AB"}
+                value={initials}
+                style={{ width: '100%' }}
+                onChange={(e) => {
+                  setInitials(e.target.value.toUpperCase());
+                }}
+              />
+            </div>
+            
+            {/* Hintergrundfarbe */}
+            <div style={{ marginBottom: '15px' }}>
+              <label htmlFor="profileColor" style={{ display: 'block', marginBottom: '5px', fontSize: '0.9rem' }}>Hintergrundfarbe</label>
+              
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                {['#4a90e2', '#50e3c2', '#e6c029', '#e67e22', '#e74c3c', '#9b59b6', '#3498db', '#2ecc71'].map(color => (
+                  <div 
+                    key={color}
+                    onClick={() => {
+                      setProfileColor(color);
+                    }}
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '50%',
+                      backgroundColor: color,
+                      cursor: 'pointer',
+                      border: '2px solid transparent',
+                      transition: 'transform 0.2s ease, border 0.2s ease',
+                      boxShadow: color === profileColor ? '0 0 0 2px var(--primary)' : 'none'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'scale(1.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                  />
+                ))}
+              </div>
+              
+              {/* Vorschau */}
+              <div style={{ marginTop: '15px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{
+                  width: '50px',
+                  height: '50px',
+                  borderRadius: '50%',
+                  backgroundColor: profileColor,
+                  color: 'white',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 'bold',
+                  fontSize: '1.2rem',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                }}>
+                  {/* Hier die Initialien anzeigen */}
+                  {initials || currentUser?.name?.charAt(0).toUpperCase() || "A"}
+                </div>
+                <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Vorschau</span>
+              </div>
+            </div>
+
+            {/* Status-Meldungen */}
+            {profileSaveSuccess && (
+              <div style={{ 
+                backgroundColor: 'var(--success-light)', 
+                color: 'var(--success)', 
+                padding: '10px', 
+                borderRadius: '8px', 
+                marginBottom: '15px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px'
+              }}>
+                <FiCheckCircle size={18} />
+                Profilbild-Einstellungen erfolgreich gespeichert!
+              </div>
+            )}
+            
+            {profileSaveError && (
+              <div style={{ 
+                backgroundColor: 'var(--error-light)', 
+                color: 'var(--error)', 
+                padding: '10px', 
+                borderRadius: '8px', 
+                marginBottom: '15px'
+              }}>
+                {profileSaveError}
+              </div>
+            )}
+
+            {/* Speichern Button */}
+            <button 
+              className="button primary"
+              onClick={saveProfileSettings}
+              disabled={isSavingProfile}
+              style={{ width: '100%', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
+            >
+              {isSavingProfile ? (
+                <>
+                  <span className="spinner" style={{ width: '16px', height: '16px' }}></span>
+                  Speichert...
+                </>
+              ) : (
+                <>
+                  <FiSave size={16} />
+                  Profilbild speichern
+                </>
+              )}
+            </button>
+            
+            {/* Passwort ändern Button */}
+            <div style={{ marginBottom: '20px' }}>
+              <h4 style={{ marginTop: '25px', marginBottom: '15px', fontSize: '1rem' }}>Sicherheit</h4>
+              <button 
+                className="button primary"
+                onClick={() => {
+                  // Hier später Logik zum Ändern des Passworts
+                  alert('Passwort ändern Funktion wird später hinzugefügt.');
+                }}
+                style={{ width: '100%', marginBottom: '15px' }}
+              >
+                <FiUser style={{ marginRight: '5px' }} /> Passwort ändern
+              </button>
+            </div>
+          </div>
+          
+          {/* Abmelden */}
           <div style={{ marginBottom: '20px' }}>
             <button 
               className="button danger"

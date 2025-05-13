@@ -1225,4 +1225,41 @@ export const settingsService = {
 import { chatService } from './chatService';
 export { chatService };
 
+// UserService für Benutzerprofileinstellungen
+export const userService = {
+  // Benutzerprofileinstellungen abrufen
+  getProfileSettings: async () => {
+    try {
+      const response = await api.get('/settings/profile');
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : new Error('Fehler beim Abrufen der Benutzereinstellungen');
+    }
+  },
+  
+  // Benutzerprofileinstellungen aktualisieren
+  updateProfileSettings: async (profileData) => {
+    try {
+      const response = await api.patch('/settings/profile', profileData);
+      
+      // Aktualisiere auch den lokalen Benutzercache
+      try {
+        const currentUserRaw = localStorage.getItem('currentUser');
+        if (currentUserRaw) {
+          const currentUser = JSON.parse(currentUserRaw);
+          const updatedUser = { ...currentUser, ...profileData };
+          localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+          console.log('Benutzereinstellungen im lokalen Cache aktualisiert', updatedUser);
+        }
+      } catch (cacheError) {
+        console.warn('Fehler beim Aktualisieren des Benutzercaches:', cacheError);
+      }
+      
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : new Error('Fehler beim Aktualisieren der Benutzereinstellungen');
+    }
+  }
+};
+
 export default api;

@@ -40,7 +40,7 @@ router.get('/:apartmentId/roommates', verifyToken, async (req, res) => {
     
     // Alle Mitbewohner der Wohnung abrufen
     const [roommates] = await pool.query(
-      `SELECT u.id, u.name, u.email, ua.is_owner, ua.joined_at 
+      `SELECT u.id, u.name, u.email, ua.is_owner, ua.joined_at, u.initials, u.profile_color 
        FROM users u 
        JOIN user_apartments ua ON u.id = ua.user_id 
        WHERE ua.apartment_id = ? 
@@ -72,7 +72,7 @@ router.get('/user_apartments/:apartmentId/points', verifyToken, async (req, res)
     
     // Alle Benutzer der Wohnung mit ihren Punkten abrufen
     const [users] = await pool.query(
-      `SELECT ua.user_id, u.name as user_name, ua.points 
+      `SELECT ua.user_id, u.name as user_name, ua.points, u.initials, u.profile_color 
        FROM user_apartments ua
        JOIN users u ON ua.user_id = u.id
        WHERE ua.apartment_id = ?
@@ -561,7 +561,7 @@ router.get('/:apartmentId/members', verifyToken, async (req, res) => {
     
     // Alle Benutzer abrufen, die mit der Wohnung verknüpft sind
     const [roommates] = await pool.query(
-      `SELECT u.id, u.name, u.email, ua.is_owner 
+      `SELECT u.id, u.name, u.email, ua.is_owner, u.initials, u.profile_color 
        FROM users u
        JOIN user_apartments ua ON u.id = ua.user_id
        WHERE ua.apartment_id = ?`,

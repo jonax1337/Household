@@ -50,7 +50,11 @@ router.get('/apartment/:apartmentId', auth, async (req, res) => {
         ti.status, ti.completed_at, ti.completed_by_user_id,
         ti.points_awarded, ti.notes, ti.created_at, ti.archived,
         u.name as assigned_user_name,
-        cu.name as completed_by_user_name
+        u.initials as assigned_user_initials,
+        u.profile_color as assigned_user_profile_color,
+        cu.name as completed_by_user_name,
+        cu.initials as completed_by_user_initials,
+        cu.profile_color as completed_by_user_profile_color
       FROM task_instance ti
       LEFT JOIN users u ON ti.assigned_user_id = u.id
       LEFT JOIN users cu ON ti.completed_by_user_id = cu.id
@@ -1266,22 +1270,24 @@ router.put('/apartment/:apartmentId/instance/:instanceId', auth, async (req, res
         });
         
         // Prüfen, ob es sich um einen 'Nach Bedarf' Task handelt
-        if (task.interval_type === 'on_demand') {
-          console.log('Nach Bedarf-Task - Erstelle neue Instanz ohne Fälligkeitsdatum');
+        // Dies kann entweder durch interval_type='on_demand' oder durch interval_type='custom' und interval_value=-1 signalisiert werden
+        if (task.interval_type === 'on_demand' || (task.interval_type === 'custom' && task.interval_value === -1)) {
+          console.log('Nach Bedarf-Task erkannt - Erstelle neue Instanz ohne Fälligkeitsdatum');
           console.log('ON-DEMAND-TASK DETAILS:', {
             task_id: task.id,
             task_title: task.title,
             interval_type: task.interval_type,
-            interval_value: task.interval_value
+            interval_value: task.interval_value,
+            erkannt_als: task.interval_type === 'on_demand' ? 'on_demand' : 'custom/-1'
           });
-          // Bei on_demand eine neue Instanz erstellen, aber ohne Fälligkeitsdatum
+          // Bei Nach-Bedarf-Tasks eine neue Instanz erstellen, aber ohne Fälligkeitsdatum
           [result] = await pool.query(
             `INSERT INTO task_instance (
               task_id, apartment_id, assigned_user_id, due_date, status, points_awarded, notes
             ) VALUES (?, ?, ?, NULL, 'offen', ?, ?)`,
             [taskId, apartmentId, assigned_user_id || instance.assigned_user_id, task.points, templateDescription]
           );
-          console.log('Neue On-Demand-Instanz erstellt mit ID:', result.insertId);
+          console.log('Neue Nach-Bedarf-Instanz erstellt mit ID:', result.insertId);
         } else if (nextDueDate) {
           // Neue Instanz mit nächstem Fälligkeitsdatum erstellen
           [result] = await pool.query(

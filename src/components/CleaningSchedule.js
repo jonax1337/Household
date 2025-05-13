@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { FiPlus, FiUserPlus, FiCheck, FiInfo, FiTrash2, FiCalendar, FiEdit2, FiAward, FiRepeat, FiLayout, FiArchive, FiClock, FiUser, FiUserCheck, FiFilter, FiChevronDown, FiX, FiPlusCircle, FiMoreVertical, FiChevronRight, FiAlertCircle } from 'react-icons/fi';
 import { useParams, useNavigate } from 'react-router-dom';
 import NoApartmentSelected from './NoApartmentSelected';
+import { roommateService } from '../services/api'; // Import des roommateService
 
 // Inline Styles für Template- und Instanz-Darstellung
 const styles = {
@@ -80,22 +81,6 @@ const styles = {
 // Task-Service für API-Aufrufe importieren
 import taskService from '../services/taskService';
 
-// Hilfsfunktion zum Generieren konsistenter Farben für Benutzer
-const getColorForUser = (userId) => {
-  if (!userId) return 'primary';
-  // Feste Farbpalette für verschiedene Benutzer
-  const colors = ['primary', 'secondary', 'success', 'warning', 'error'];
-  // Stelle sicher, dass userId ein String ist
-  const userIdString = String(userId);
-  // Einfachere Hash-Funktion basierend auf der Summe der Charcode-Werte
-  let hash = 0;
-  for (let i = 0; i < userIdString.length; i++) {
-    hash = ((hash << 5) - hash) + userIdString.charCodeAt(i);
-  }
-  return colors[Math.abs(hash) % colors.length];
-};
-
-
 // Style-Block für die Animationen
 const cssAnimations = `
   @keyframes expandMenu {
@@ -131,6 +116,53 @@ const CleaningSchedule = ({ selectedApartment }) => {
   
   // Extrahiere apartmentId aus selectedApartment mit Fallback-Wert
   const apartmentId = selectedApartment?.id || 0;
+  
+  // State für Roommates (Mitbewohner) mit Profildaten
+  const [roommates, setRoommates] = useState([]);
+  
+  // Hilfsfunktion zum Abrufen der Profilfarbe eines Benutzers aus den Mitbewohnerdaten
+  const getColorForUser = (userId) => {
+    if (!userId) return 'primary';
+    
+    // Suche nach dem Benutzer in den geladenen Mitbewohnerdaten
+    const userMatch = roommates.find(roommate => roommate.id === parseInt(userId));
+    
+    // Wenn der Benutzer gefunden wurde und eine Profilfarbe hat, diese verwenden
+    if (userMatch && userMatch.profile_color) {
+      return userMatch.profile_color;
+    }
+    
+    // Fallback: Konsistente Farbe aus einer festen Palette generieren
+    const colors = ['primary', 'secondary', 'success', 'warning', 'error'];
+    const userIdString = String(userId);
+    let hash = 0;
+    for (let i = 0; i < userIdString.length; i++) {
+      hash = ((hash << 5) - hash) + userIdString.charCodeAt(i);
+    }
+    return colors[Math.abs(hash) % colors.length];
+  };
+  
+  // Mitbewohner mit Profildaten laden
+  const loadRoommatesData = async () => {
+    if (!apartmentId) return;
+    
+    try {
+      console.log(`%c[CLEANING] Lade Mitbewohner für Apartment ${apartmentId}`, 'color: #0066aa;');
+      const roommatesData = await roommateService.getAll(apartmentId);
+      console.log('%c[CLEANING] Mitbewohner erfolgreich geladen:', 'color: #00aa66;', roommatesData);
+      setRoommates(roommatesData);
+    } catch (error) {
+      console.error('Fehler beim Laden der Mitbewohner:', error);
+    }
+  };
+  
+  // Lade Mitbewohner, wenn sich das Apartment ändert
+  useEffect(() => {
+    if (apartmentId) {
+      loadRoommatesData();
+    }
+  }, [apartmentId]);
+  
   
   // Zweistufiges Layout für mobile Optimierung mit Fullscreen-Modal
   const [showAddForm, setShowAddForm] = useState(false);
@@ -4169,7 +4201,7 @@ const CleaningSchedule = ({ selectedApartment }) => {
                           width: '24px',
                           height: '24px',
                           borderRadius: '50%',
-                          backgroundColor: task.assignedToId ? `var(--${getColorForUser(task.assignedToId) || 'primary'})` : 'var(--text-secondary)',
+                          backgroundColor: task.assigned_user_profile_color || (task.assignedToId ? getColorForUser(task.assignedToId) : 'var(--text-secondary)'),
                           marginRight: '8px',
                           display: 'flex',
                           justifyContent: 'center',
@@ -4181,9 +4213,19 @@ const CleaningSchedule = ({ selectedApartment }) => {
                           textAlign: 'center',
                           boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)'
                         }}>
-                          {task.assignedTo ? task.assignedTo.charAt(0).toUpperCase() : '?'}
+                          {task.assigned_user_initials || (() => {
+                            // Versuche, die Initialen aus den Roommates zu bekommen
+                            if (task.assignedToId) {
+                              const userMatch = roommates.find(roommate => roommate.id === parseInt(task.assignedToId));
+                              if (userMatch && userMatch.initials) {
+                                return userMatch.initials;
+                              }
+                            }
+                            // Fallback: Erster Buchstabe des Namens
+                            return task.assignedTo ? task.assignedTo.charAt(0).toUpperCase() : '?';
+                          })()}
                         </div>
-                        <span style={{ color: 'var(--text)' }}>{task.assignedTo || 'Nicht zugewiesen'}</span>
+                        <span style={{ color: 'var(--text)' }}>{task.assignedTo || task.assigned_user_name || 'Nicht zugewiesen'}</span>
                       </div>
                       
                       {/* Zusätzliche Infos für erledigte Aufgaben */}
