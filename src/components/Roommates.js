@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiCopy, FiCheck, FiUsers, FiUser, FiRefreshCw, FiMail, FiPhone, FiPlus, FiTrash2, FiAlertCircle } from 'react-icons/fi';
+import { FiCopy, FiCheck, FiUsers, FiUser, FiRefreshCw, FiMail, FiEdit2, FiPhone, FiPlus, FiTrash2, FiAlertCircle } from 'react-icons/fi';
 import { roommateService } from '../services/api';
 import './styles.css';
 

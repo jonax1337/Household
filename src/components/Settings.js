@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { FiSun, FiBell, FiBellOff, FiCheckCircle, FiMoon, FiRefreshCw, FiHome, FiLogOut, FiEdit, FiTrash2, FiX, FiShare2, FiCopy, FiHeart, FiUser, FiSettings as FiGear, FiUsers, FiAward, FiUserX, FiDelete, FiInfo, FiSave } from 'react-icons/fi';
+import { FiSun, FiBell, FiBellOff, FiCheckCircle, FiEdit2, FiMoon, FiRefreshCw, FiHome, FiLogOut, FiEdit, FiTrash2, FiX, FiShare2, FiCopy, FiHeart, FiUser, FiSettings as FiGear, FiUsers, FiAward, FiUserX, FiDelete, FiInfo, FiSave } from 'react-icons/fi';
 import AddressPicker from './AddressPicker';
 import { useTheme } from '../context/ThemeContext';
 import { authService, apartmentService, roommateService, userService } from '../services/api';
@@ -40,12 +40,13 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
   // Eigenen lokalen State für currentUser, falls der Prop nicht gesetzt ist
   const [localCurrentUser, setLocalCurrentUser] = useState(null);
   
-  // State für Profilbild-Einstellungen
+  // Zustände für die Benutzer-Einstellungen
   const [initials, setInitials] = useState('');
   const [profileColor, setProfileColor] = useState('#4a90e2');
-  const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [profileSaveSuccess, setProfileSaveSuccess] = useState(false);
-  const [profileSaveError, setProfileSaveError] = useState('');
+  const [profileSaveError, setProfileSaveError] = useState(null);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isProfileEditing, setIsProfileEditing] = useState(false);
   
   // Effektiver currentUser - entweder aus Props oder lokal
   const currentUser = propCurrentUser || localCurrentUser;
@@ -1349,99 +1350,96 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
           </div>
         </div>
 
-        {/* Benutzerinfo */}
+        {/* Benutzerinfo - Modernisiertes Design */}
         
         <div className="card settings-section">
-          <h3>Konto</h3>
+          <h3>Profil</h3>
           
-          {/* Profilbild-Einstellungen */}
-          <div style={{ marginBottom: '20px' }}>
-            <h4 style={{ marginTop: '5px', marginBottom: '15px', fontSize: '1rem' }}>Profilbild</h4>
-            
-            {/* Initials Input */}
-            <div style={{ marginBottom: '15px' }}>
-              <label htmlFor="userInitials" style={{ display: 'block', marginBottom: '5px', fontSize: '0.9rem' }}>Initialien (max. 2 Zeichen)</label>
-              <input 
-                id="userInitials" 
-                type="text" 
-                maxLength="2"
-                className="input"
-                placeholder={currentUser?.name?.charAt(0).toUpperCase() || "AB"}
-                value={initials}
-                style={{ width: '100%' }}
-                onChange={(e) => {
-                  setInitials(e.target.value.toUpperCase());
+          {/* Benutzer-Profilbereich */}
+          <div style={{ padding: '8px 0', width: '100%' }}>
+            {/* Obere Zeile mit Profilbild und Info */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center', 
+              marginBottom: '16px',
+              gap: '16px'
+            }}>
+              {/* Kleineres Profilbild */}
+              <div 
+                style={{ 
+                  position: 'relative',
+                  cursor: 'pointer'
                 }}
-              />
+                onClick={() => setIsProfileEditing(!isProfileEditing)}
+              >
+                <div 
+                  style={{
+                    width: '64px',
+                    height: '64px',
+                    borderRadius: '50%',
+                    backgroundColor: profileColor,
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 'bold',
+                    fontSize: '1.5rem',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.15)',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    border: '2px solid var(--card-background)'
+                  }}
+                >
+                  {/* Initialen anzeigen */}
+                  {initials || currentUser?.name?.charAt(0).toUpperCase() || "A"}
+                  
+                  {/* Overlay beim Hover mit Bearbeiten-Icon */}
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    backgroundColor: 'rgba(0,0,0,0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    opacity: 0,
+                    transition: 'opacity 0.2s ease',
+                  }}
+                  className="profile-edit-overlay"
+                  >
+                    <FiEdit2 size={18} color="white" />
+                  </div>
+                </div>
+              </div>
+              
+              {/* Benutzerinfo - linksbündig */}
+              <div style={{ flex: 1 }}>
+                <h4 style={{ margin: '0 0 4px 0', fontSize: '1rem', fontWeight: '500' }}>
+                  {currentUser?.name || "Benutzer"}
+                </h4>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                  {currentUser?.email || "E-Mail nicht verfügbar"}
+                </span>
+              </div>
             </div>
             
-            {/* Hintergrundfarbe */}
-            <div style={{ marginBottom: '15px' }}>
-              <label htmlFor="profileColor" style={{ display: 'block', marginBottom: '5px', fontSize: '0.9rem' }}>Hintergrundfarbe</label>
-              
-              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                {['#4a90e2', '#50e3c2', '#e6c029', '#e67e22', '#e74c3c', '#9b59b6', '#3498db', '#2ecc71'].map(color => (
-                  <div 
-                    key={color}
-                    onClick={() => {
-                      setProfileColor(color);
-                    }}
-                    style={{
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '50%',
-                      backgroundColor: color,
-                      cursor: 'pointer',
-                      border: '2px solid transparent',
-                      transition: 'transform 0.2s ease, border 0.2s ease',
-                      boxShadow: color === profileColor ? '0 0 0 2px var(--primary)' : 'none'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'scale(1.1)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'scale(1)';
-                    }}
-                  />
-                ))}
-              </div>
-              
-              {/* Vorschau */}
-              <div style={{ marginTop: '15px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{
-                  width: '50px',
-                  height: '50px',
-                  borderRadius: '50%',
-                  backgroundColor: profileColor,
-                  color: 'white',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 'bold',
-                  fontSize: '1.2rem',
-                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                }}>
-                  {/* Hier die Initialien anzeigen */}
-                  {initials || currentUser?.name?.charAt(0).toUpperCase() || "A"}
-                </div>
-                <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Vorschau</span>
-              </div>
-            </div>
-
             {/* Status-Meldungen */}
             {profileSaveSuccess && (
               <div style={{ 
                 backgroundColor: 'var(--success-light)', 
                 color: 'var(--success)', 
-                padding: '10px', 
+                padding: '8px 16px', 
                 borderRadius: '8px', 
-                marginBottom: '15px',
+                marginBottom: '16px',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '10px'
+                gap: '8px',
+                width: '100%'
               }}>
-                <FiCheckCircle size={18} />
-                Profilbild-Einstellungen erfolgreich gespeichert!
+                <FiCheckCircle size={16} />
+                Profilbild erfolgreich gespeichert
               </div>
             )}
             
@@ -1449,60 +1447,219 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
               <div style={{ 
                 backgroundColor: 'var(--error-light)', 
                 color: 'var(--error)', 
-                padding: '10px', 
+                padding: '8px 16px', 
                 borderRadius: '8px', 
-                marginBottom: '15px'
+                marginBottom: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                width: '100%'
               }}>
+                <FiAlertCircle size={16} />
                 {profileSaveError}
               </div>
             )}
-
-            {/* Speichern Button */}
-            <button 
-              className="button primary"
-              onClick={saveProfileSettings}
-              disabled={isSavingProfile}
-              style={{ width: '100%', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
-            >
-              {isSavingProfile ? (
-                <>
-                  <span className="spinner" style={{ width: '16px', height: '16px' }}></span>
-                  Speichert...
-                </>
-              ) : (
-                <>
-                  <FiSave size={16} />
-                  Profilbild speichern
-                </>
-              )}
-            </button>
             
-            {/* Passwort ändern Button */}
-            <div style={{ marginBottom: '20px' }}>
-              <h4 style={{ marginTop: '25px', marginBottom: '15px', fontSize: '1rem' }}>Sicherheit</h4>
+            {/* Bearbeitungsbereich (über State gesteuert) */}
+            <div style={{
+                maxHeight: isProfileEditing ? '400px' : '0',
+                overflow: 'hidden',
+                transition: 'all 0.3s ease',
+                width: '100%',
+                borderRadius: '8px',
+                backgroundColor: 'var(--background-secondary)',
+                marginBottom: isProfileEditing ? '16px' : '0',
+                marginTop: isProfileEditing ? '8px' : '0',
+                opacity: isProfileEditing ? '1' : '0'
+              }}
+            >
+              <div style={{ padding: '12px' }}>
+                {/* Überschrift mit Buttons */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <h4 style={{ margin: 0, fontSize: '0.85rem', fontWeight: '500' }}>Profil bearbeiten</h4>
+                  
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    {/* Speichern Button */}
+                    <button 
+                      className="button primary small"
+                      onClick={saveProfileSettings}
+                      disabled={isSavingProfile}
+                      style={{ 
+                        padding: '4px 8px',
+                        fontSize: '0.75rem',
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        height: '24px',
+                        gap: '4px'
+                      }}
+                    >
+                      {isSavingProfile ? (
+                        <>
+                          <span className="spinner" style={{ width: '10px', height: '10px' }}></span>
+                          Speichert...
+                        </>
+                      ) : (
+                        <>
+                          <FiSave size={12} />
+                          Speichern
+                        </>
+                      )}
+                    </button>
+                    
+                    {/* Close Button */}
+                    <button 
+                      onClick={() => setIsProfileEditing(false)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: '4px', display: 'flex' }}
+                    >
+                      <FiX size={14} />
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Initials Input */}
+                <div style={{ marginBottom: '8px' }}>
+                  <label htmlFor="userInitials" style={{ display: 'block', marginBottom: '4px', fontSize: '0.8rem', fontWeight: '500' }}>
+                    Initialien (max. 2 Zeichen)
+                  </label>
+                  <input 
+                    id="userInitials" 
+                    type="text" 
+                    maxLength="2"
+                    className="input"
+                    placeholder={currentUser?.name?.charAt(0).toUpperCase() || "AB"}
+                    value={initials}
+                    style={{ width: '100%', padding: '4px 8px', height: '32px' }}
+                    onChange={(e) => {
+                      setInitials(e.target.value.toUpperCase());
+                    }}
+                  />
+                </div>
+                
+                {/* Farbauswahl */}
+                <div style={{ marginBottom: '8px' }}>
+                  <label htmlFor="profileColor" style={{ display: 'block', marginBottom: '4px', fontSize: '0.8rem', fontWeight: '500' }}>
+                    Profilfarbe
+                  </label>
+                  
+                  {/* Farbauswahl mit Farben als Kreise - ausgewogene Größe */}
+                  <div style={{ 
+                    display: 'flex', 
+                    flexWrap: 'wrap',
+                    justifyContent: 'space-between',
+                    gap: '8px', 
+                    marginBottom: '8px',
+                    width: '100%'
+                  }}>
+                    {['#4a90e2', '#50e3c2', '#e6c029', '#e67e22', '#e74c3c', '#9b59b6', '#3498db', '#2ecc71', '#8e44ad'].map(color => (
+                      <div 
+                        key={color}
+                        onClick={() => {
+                          setProfileColor(color);
+                        }}
+                        style={{
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '50%', // Runde Farbauswahl
+                          backgroundColor: color,
+                          cursor: 'pointer',
+                          border: '2px solid var(--card-background)',
+                          transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                          boxShadow: color === profileColor ? '0 0 0 2px var(--primary)' : 'none',
+                          flexGrow: 1,
+                          flexBasis: 'calc(20% - 8px)',
+                          maxWidth: '32px',
+                          flexShrink: 0
+                        }}
+                      />
+                    ))}
+                    {/* Option für benutzerdefinierte Farbe */}
+                    <div 
+                      className="custom-color-picker"
+                      style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #ff0000, #ff8000, #ffff00, #00ff00, #00ffff, #0000ff, #8000ff, #ff00ff)',
+                        cursor: 'pointer',
+                        border: '2px solid var(--card-background)',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        flexGrow: 1,
+                        flexBasis: 'calc(20% - 8px)',
+                        maxWidth: '32px',
+                        flexShrink: 0
+                      }}
+                    >
+                      <input 
+                        type="color" 
+                        value={profileColor}
+                        onChange={(e) => setProfileColor(e.target.value)}
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '100%',
+                          opacity: 0,
+                          cursor: 'pointer'
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+
+              </div>
+            </div>
+            
+            {/* Action Buttons in 8pt Grid */}
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: '1fr 1fr', 
+              gap: '8px',
+              width: '100%',
+              marginTop: '16px'
+            }}>
+              {/* Passwort ändern Button */}
               <button 
-                className="button primary"
+                className="button outline"
                 onClick={() => {
-                  // Hier später Logik zum Ändern des Passworts
                   alert('Passwort ändern Funktion wird später hinzugefügt.');
                 }}
-                style={{ width: '100%', marginBottom: '15px' }}
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  gap: '8px',
+                  padding: '8px'
+                }}
               >
-                <FiUser style={{ marginRight: '5px' }} /> Passwort ändern
+                <FiUser size={16} /> Passwort
+              </button>
+              
+              {/* Abmelden Button */}
+              <button 
+                className="button danger"
+                onClick={handleLogout}
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  gap: '8px',
+                  padding: '8px'
+                }}
+              >
+                <FiLogOut size={16} /> Abmelden
               </button>
             </div>
           </div>
           
-          {/* Abmelden */}
-          <div style={{ marginBottom: '20px' }}>
-            <button 
-              className="button danger"
-              onClick={handleLogout}
-              style={{ width: '100%' }}
-            >
-              <FiLogOut style={{ marginRight: '5px' }} /> Abmelden
-            </button>
-          </div>
+          {/* CSS für Hover-Effekte */}
+          <style jsx>{`
+            .profile-edit-overlay:hover {
+              opacity: 1 !important;
+            }
+          `}</style>
         </div>
       
       {/* Theme-Einstellungen */}
