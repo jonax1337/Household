@@ -135,15 +135,18 @@ router.get('/user', verifyToken, async (req, res) => {
 
 // Google OAuth Authentifizierung
 router.post('/google', async (req, res) => {
-  console.log('[SERVER] Google OAuth-Anfrage erhalten:', req.body);
-  const { code, redirectUri } = req.body;
-  
-  if (!code || !redirectUri) {
-    console.error('[SERVER] Fehlende Parameter in der Google-Anfrage');
-    return res.status(400).json({ message: 'Code und redirectUri sind erforderlich' });
-  }
+  console.log('[SERVER] Google OAuth-Anfrage erhalten');
+  console.log('[SERVER] Request Body:', JSON.stringify(req.body, null, 2));
+  console.log('[SERVER] Request Headers:', req.headers);
   
   try {
+    const { code, redirectUri } = req.body;
+    
+    if (!code || !redirectUri) {
+      console.error('[SERVER] Fehlende Parameter in der Google-Anfrage');
+      return res.status(400).json({ message: 'Code und redirectUri sind erforderlich' });
+    }
+  
     console.log('[SERVER] Tausche Auth-Code gegen Token bei Google...');
     console.log(`[SERVER] Verwende Client-ID: ${GOOGLE_CLIENT_ID.substring(0, 10)}...`);
     console.log(`[SERVER] Verwende Client-Secret: ${GOOGLE_CLIENT_SECRET.substring(0, 5)}...`);
@@ -223,13 +226,16 @@ router.post('/google', async (req, res) => {
     });
   } catch (error) {
     console.error('[SERVER] Google Auth Fehler:', error.message);
+    console.error('[SERVER] Stack-Trace:', error.stack);
+    
     if (error.response) {
       console.error('[SERVER] Fehlerantwort von Google:', {
         status: error.response.status,
-        data: error.response.data
+        data: JSON.stringify(error.response.data)
       });
     }
-    res.status(500).json({ 
+    
+    return res.status(500).json({ 
       message: 'Fehler bei der Google-Authentifizierung', 
       error: error.message,
       details: error.response?.data || 'Keine Details verfügbar'
