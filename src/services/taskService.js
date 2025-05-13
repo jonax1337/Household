@@ -320,15 +320,115 @@ const taskService = {
         apiTaskDataNotes: apiTaskData.notes
       });
       
+      // Logik zur besseren Verarbeitung von repeat/interval_type
+      let interval_type = 'none';
+      let interval_value = 1;
+      let is_recurring = false;
+      
+      // KRITISCHE PRIORITU00c4T: Direkte Pruefung auf 'on_demand' im repeat-Feld
+      // Dies hat absolute Prioritaet ueber alle anderen Einstellungen
+      const isOnDemand = taskData.repeat === 'on_demand';
+      
+      console.log('ABSOLUTE PRIORITY CHECK:', {
+        repeat: taskData.repeat,
+        isOnDemand: isOnDemand,
+        intervalType_original: taskData.intervalType
+      });
+      
+      // Bei 'on_demand' sofort Override aller anderen Werte
+      if (isOnDemand) {
+        console.log('!!! ON-DEMAND TASK ERKANNT - OVERRIDE ALLER ANDEREN WERTE !!!');
+        is_recurring = true;
+        interval_type = 'custom';  // Workaround fuer Datenbank
+        interval_value = -1;       // Special marker value
+        
+        // KRITISCH: On-Demand Tasks haben KEIN Fälligkeitsdatum
+        apiTaskData.due_date = null;
+        taskData.dueDate = null;
+        console.log('ON-DEMAND TASK: Fälligkeitsdatum entfernt', { 
+          originalDueDate: apiTaskData.due_date, 
+          taskDataDueDate: taskData.dueDate 
+        });
+        
+        // WICHTIG: Alle weiteren Logiken werden uebersprungen
+      } 
+      else {
+        // Normale Logik fuer alle anderen Task-Typen
+        console.log('TASKSERVICE TYPE RESOLUTION DEBUGGING:', {
+          repeat: taskData.repeat,
+          original_intervalType: taskData.intervalType,
+          original_intervalValue: taskData.intervalValue
+        });
+        
+        // Pruefe zuerst, ob repeat gesetzt ist (von UI-Komponenten)
+        if (taskData.repeat && taskData.repeat !== 'none') {
+          is_recurring = true;
+          
+          // Prioritaet: repeat-Wert aus der UI hat Vorrang
+          if (taskData.repeat === 'daily') {
+            interval_type = 'daily';
+          } else if (taskData.repeat === 'weekly') {
+            interval_type = 'weekly';
+          } else if (taskData.repeat === 'biweekly') {
+            interval_type = 'weekly';
+            interval_value = 2;
+          } else if (taskData.repeat === 'monthly') {
+            interval_type = 'monthly';
+          } else {
+            // Fallback fuer andere Werte
+            interval_type = taskData.repeat;
+          }
+        }
+        
+        // Explizite intervalType-Werte koennen repeat ueberschreiben, wenn sie vom Client gesetzt wurden
+        if (taskData.intervalType && taskData.intervalType !== interval_type) {
+          console.log(`WARNUNG: Inkonsistenz zwischen repeat (${taskData.repeat}) und intervalType (${taskData.intervalType}). intervalType hat Vorrang.`);
+          interval_type = taskData.intervalType;
+        }
+        
+        // Bei explizitem intervalValue, diesen verwenden
+        if (taskData.intervalValue !== undefined) {
+          interval_value = taskData.intervalValue;
+        }
+      }
+      
+      console.log('TYPE RESOLUTION ERGEBNIS:', {
+        is_recurring: is_recurring,
+        interval_type: interval_type,
+        interval_value: interval_value,
+        von_repeat: taskData.repeat
+      });
+      
       const templateData = {
         title: apiTaskData.title,
         description: taskData.description || taskData.notes || apiTaskData.notes || '',
         points: apiTaskData.points,
-        is_recurring: taskData.repeat && taskData.repeat !== 'none' ? true : false,
-        interval_type: taskData.repeat && taskData.repeat !== 'none' ? (taskData.intervalType || taskData.repeat) : 'none',
-        interval_value: taskData.intervalValue || 1,
+        is_recurring: is_recurring,
+        interval_type: interval_type,
+        interval_value: interval_value,
         color: apiTaskData.color
       };
+      
+      // Besondere Behandlung für 'Nach Bedarf' Tasks
+      if (templateData.interval_type === 'on_demand') {
+        // Bei 'Nach Bedarf' Tasks ist is_recurring immer true
+        templateData.is_recurring = true;
+        
+        // WORKAROUND: Wegen Datenbank-Kompatibilität verwenden wir 'custom' mit interval_value = -1
+        templateData.interval_type = 'custom';
+        templateData.interval_value = -1;
+        
+        console.log('Nach Bedarf-Task erkannt - wird als custom mit interval_value=-1 markiert');
+        
+        // Erweitertes Debug-Logging
+        console.log('TASK NACH BEDARF DETAILS (MIT WORKAROUND):', {
+          is_recurring: templateData.is_recurring,
+          interval_type: templateData.interval_type,
+          interval_value: templateData.interval_value,
+          original_intent: 'on_demand',
+          workaround: 'custom mit interval_value = -1'
+        });
+      }
       
       // Make sure the description is not empty if notes exist
       console.log('TEMPLATE DESCRIPTION CHECK:', {
@@ -360,13 +460,30 @@ const taskService = {
           throw new Error('Ungültige Task-ID in Server-Antwort');
         }
         
+        // Task-Type-Information aus Template extrahieren
+        const isOnDemandTask = templateData.interval_type === 'custom' && templateData.interval_value === -1;
+        
         const instanceData = {
           template_id: templateResponse.data.template.id,
-          due_date: apiTaskData.due_date,
+          due_date: isOnDemandTask ? null : apiTaskData.due_date, // Bei On-Demand explizit null setzen
           assigned_user_id: apiTaskData.assigned_user_id,
           points: apiTaskData.points,
-          notes: templateData.description  // Use the same value as the template description
+          notes: templateData.description,  // Use the same value as the template description
+          
+          // KRITISCH: On-Demand-Info an die Instanz weitergeben
+          repeat: isOnDemandTask ? 'on_demand' : apiTaskData.repeat,
+          intervalType: isOnDemandTask ? 'custom' : templateData.interval_type,
+          intervalValue: isOnDemandTask ? -1 : templateData.interval_value
         };
+        
+        if (isOnDemandTask) {
+          console.log('ON-DEMAND-TASK ERKANNT: Spezielle Werte werden an Instanz weitergegeben', {
+            interval_type: 'custom',
+            interval_value: -1,
+            due_date: null,
+            repeat: 'on_demand'
+          });
+        }
         
         console.log('INSTANCE NOTES CHECK:', {
           finalNotes: instanceData.notes,

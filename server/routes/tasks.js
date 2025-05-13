@@ -324,6 +324,14 @@ router.post('/apartment/:apartmentId/template', auth, async (req, res) => {
     apartmentId, userId, title, description, points,
     is_recurring, interval_type, interval_value, color
   });
+  
+  // Erweiterte Debug-Informationen für 'on_demand' Tasks
+  console.log('TEMPLATE CREATION DEBUG:', {
+    interval_type_raw: req.body.interval_type,
+    interval_value_raw: req.body.interval_value,
+    is_on_demand: req.body.interval_type === 'on_demand',
+    is_recurring_raw: req.body.is_recurring
+  });
 
   // Validierung
   if (!title) {
@@ -341,6 +349,31 @@ router.post('/apartment/:apartmentId/template', auth, async (req, res) => {
       return res.status(403).json({ message: 'Kein Zugriff auf dieses Apartment' });
     }
 
+    // Spezielle Behandlung für 'on_demand' Tasks mit robusterer Datenbankhandhabung
+    if (interval_type === 'on_demand') {
+      console.log('ON-DEMAND TASK WIRD ERSTELLT:', {
+        title,
+        interval_type,
+        interval_value
+      });
+      // Für 'on_demand' Tasks: is_recurring = 1, interval_value = 0
+      is_recurring = true;
+      interval_value = 0;
+      
+      // Wichtig: MySQL enum könnte Probleme mit 'on_demand' haben,
+      // deshalb verwenden wir 'custom' mit einer speziellen interval_value
+      interval_type = 'custom'; // Enum-Wert, der definitiv in der Datenbank existiert
+      interval_value = -1; // Spezielle negative Zahl zur Kennzeichnung von 'on_demand'
+      
+      console.log('ON-DEMAND TASK ANGEPASST MIT WORKAROUND:', {
+        title,
+        interval_type,
+        interval_value,
+        is_recurring,
+        info: 'Verwendet custom+(-1) statt on_demand zur Kompatibilität'
+      });
+    }
+    
     // Neue Task-Vorlage erstellen
     const [result] = await pool.query(
       `INSERT INTO task (
@@ -490,8 +523,56 @@ router.post('/apartment/:apartmentId/instance', auth, async (req, res) => {
     return res.status(400).json({ message: 'Entweder template_id oder title muss angegeben werden' });
   }
 
-  if (!due_date) {
-    return res.status(400).json({ message: 'Fälligkeitsdatum ist erforderlich' });
+  // KRITISCHE STELLE: Prüfung für On-Demand-Tasks
+  // Hier müssen wir ALLE möglichen Varianten berücksichtigen und die Typumwandlung beachten
+  
+  // Wandle intervalValue explizit in einen Integer um für sicheren Vergleich
+  const intervalValueNumber = intervalValue !== undefined ? parseInt(intervalValue, 10) : null;
+  
+  // On-Demand kann auf mehrere Arten erkannt werden:
+  const isOnDemandByRepeat = repeat === 'on_demand';
+  const isOnDemandByIntervalType = finalIntervalType === 'custom' && intervalValueNumber === -1;
+  const isOnDemandByDirectFlag = req.body.isOnDemandTask === true;
+  
+  // Kombinierte Prüfung
+  const isOnDemandTask = isOnDemandByRepeat || isOnDemandByIntervalType || isOnDemandByDirectFlag;
+  
+  console.log('FÄLLIGKEITSDATUM VALIDIERUNG (ERWEITERT):', {
+    due_date,
+    isOnDemandTask,
+    isOnDemandByRepeat,
+    isOnDemandByIntervalType,
+    isOnDemandByDirectFlag,
+    repeat,
+    finalIntervalType,
+    intervalValue,
+    intervalValueNumber: intervalValueNumber,
+    body_keys: Object.keys(req.body)
+  });
+
+  // DEBUG: Zeige direkt den genauen Wert der Parameter
+  console.log('VALIDIERUNG RAW VALUES:', {
+    due_date_type: typeof due_date,
+    due_date_value: due_date,
+    repeat_type: typeof repeat,
+    repeat_value: repeat,
+    intervalType_type: typeof intervalType,
+    intervalType_value: intervalType,
+    intervalValue_type: typeof intervalValue,
+    intervalValue_value: intervalValue
+  });
+
+  // DIREKTE AUSNAHME FÜR ON-DEMAND TASKS
+  // Wenn der Task explizit 'on_demand' ist, dürfen wir KEIN Fälligkeitsdatum verlangen
+  if (repeat === 'on_demand') {
+    console.log('ON-DEMAND TASK ERKANNT: Fälligkeitsdatum darf null sein');
+    
+    // Für On-Demand Tasks setzen wir die notwendigen Flags direkt
+    // Fälligkeitsdatum ist hier optional und darf null sein
+    
+  } else if (!due_date) {
+    // Für alle anderen Tasks ist das Fälligkeitsdatum erforderlich
+    return res.status(400).json({ message: 'Fälligkeitsdatum ist erforderlich (außer bei Nach-Bedarf-Tasks)' });
   }
 
   try {
@@ -1174,27 +1255,62 @@ router.put('/apartment/:apartmentId/instance/:instanceId', auth, async (req, res
         const templateDescription = taskTemplate.length > 0 ? taskTemplate[0].description : '';
         console.log('Kopiere Beschreibung in neue Instanz:', templateDescription);
         
-        // Neue Instanz mit nächstem Fälligkeitsdatum erstellen
-        const [result] = await pool.query(
-          `INSERT INTO task_instance (
-            task_id, apartment_id, assigned_user_id, due_date, status, points_awarded, notes
-          ) VALUES (?, ?, ?, ?, 'offen', ?, ?)`,
-          [taskId, apartmentId, assigned_user_id || instance.assigned_user_id, nextDueDate, task.points, templateDescription]
-        );
-
-        const [newInstances] = await pool.query(
-          `SELECT ti.*, t.title, t.color
-           FROM task_instance ti
-           LEFT JOIN task t ON ti.task_id = t.id
-           WHERE ti.id = ?`,
-          [result.insertId]
-        );
-
-        if (newInstances.length > 0) {
-          nextTask = {
-            ...newInstances[0],
-            due_date: newInstances[0].due_date ? new Date(newInstances[0].due_date).toISOString().split('T')[0] : null
-          };
+        let result;
+        // Erweiterte Debugging-Informationen für Task-Typ
+        console.log('DETAILLIERTE TASK-INFORMATIONEN:', {
+          task_id: task.id,
+          task_title: task.title,
+          interval_type: task.interval_type,
+          interval_value: task.interval_value,
+          is_recurring: task.is_recurring
+        });
+        
+        // Prüfen, ob es sich um einen 'Nach Bedarf' Task handelt
+        if (task.interval_type === 'on_demand') {
+          console.log('Nach Bedarf-Task - Erstelle neue Instanz ohne Fälligkeitsdatum');
+          console.log('ON-DEMAND-TASK DETAILS:', {
+            task_id: task.id,
+            task_title: task.title,
+            interval_type: task.interval_type,
+            interval_value: task.interval_value
+          });
+          // Bei on_demand eine neue Instanz erstellen, aber ohne Fälligkeitsdatum
+          [result] = await pool.query(
+            `INSERT INTO task_instance (
+              task_id, apartment_id, assigned_user_id, due_date, status, points_awarded, notes
+            ) VALUES (?, ?, ?, NULL, 'offen', ?, ?)`,
+            [taskId, apartmentId, assigned_user_id || instance.assigned_user_id, task.points, templateDescription]
+          );
+          console.log('Neue On-Demand-Instanz erstellt mit ID:', result.insertId);
+        } else if (nextDueDate) {
+          // Neue Instanz mit nächstem Fälligkeitsdatum erstellen
+          [result] = await pool.query(
+            `INSERT INTO task_instance (
+              task_id, apartment_id, assigned_user_id, due_date, status, points_awarded, notes
+            ) VALUES (?, ?, ?, ?, 'offen', ?, ?)`,
+            [taskId, apartmentId, assigned_user_id || instance.assigned_user_id, nextDueDate, task.points, templateDescription]
+          );
+          console.log('Neue planmäßige Instanz erstellt mit ID:', result.insertId);
+        } else {
+          console.log('Kein gültiges nächstes Fälligkeitsdatum - Keine neue Instanz erstellt');
+        }
+        
+        // Nur wenn eine neue Instanz erstellt wurde, diese auch zurückgeben
+        if (result && result.insertId) {
+          const [newInstances] = await pool.query(
+            `SELECT ti.*, t.title, t.color
+             FROM task_instance ti
+             LEFT JOIN task t ON ti.task_id = t.id
+             WHERE ti.id = ?`,
+            [result.insertId]
+          );
+    
+          if (newInstances.length > 0) {
+            nextTask = {
+              ...newInstances[0],
+              due_date: newInstances[0].due_date ? new Date(newInstances[0].due_date).toISOString().split('T')[0] : null
+            };
+          }
         }
       }
     }
@@ -1574,6 +1690,11 @@ function calculateNextDueDate(currentDueDate, intervalType, intervalValue = 1) {
     case 'monthly':
       baseDate.setMonth(baseDate.getMonth() + intervalValue);
       break;
+    case 'on_demand':
+      // Für 'Nach Bedarf' Tasks wird keine automatische neue Instanz erstellt
+      // Wir geben null zurück, um anzuzeigen, dass keine neue Instanz erstellt werden soll
+      console.log('on_demand Task - Keine automatische neue Instanz');
+      return null;
     case 'custom':
       // Für benutzerdefinierte Intervalle interpretieren wir den Wert als Tage
       baseDate.setDate(baseDate.getDate() + intervalValue);

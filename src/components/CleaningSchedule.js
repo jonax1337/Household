@@ -186,6 +186,7 @@ const CleaningSchedule = ({ selectedApartment }) => {
     { value: 'daily', label: 'Täglich' },
     { value: 'weekly', label: 'Wöchentlich' },
     { value: 'monthly', label: 'Monatlich' },
+    { value: 'on_demand', label: 'Nach Bedarf' },
     { value: 'custom', label: 'Benutzerdefiniert...' }
   ];
 
@@ -414,14 +415,38 @@ const CleaningSchedule = ({ selectedApartment }) => {
   const getNextDueDate = (task) => {
     if (!isTaskTemplate(task) || !task.initial_due_date) return task.due_date;
     
+    // Bei 'Nach Bedarf' Tasks gibt es kein festes Fälligkeitsdatum
+    const intervalType = task.interval_type || (
+      task.repeat === 'daily' ? 'daily' : 
+      task.repeat === 'weekly' ? 'weekly' : 
+      task.repeat === 'monthly' ? 'monthly' : 
+      task.repeat === 'on_demand' ? 'on_demand' : null
+    );
+    
+    // WORKAROUND: 'custom' mit interval_value = -1 bedeutet 'Nach Bedarf'
+    const isOnDemand = 
+      intervalType === 'on_demand' || 
+      (task.interval_type === 'custom' && task.interval_value === -1);
+    
+    // Debug-Auskunft über Task-Erkennung
+    console.log('TASK INTERVAL TYP CHECK:', {
+      id: task.id,
+      title: task.title,
+      interval_type: task.interval_type,
+      interval_value: task.interval_value,
+      isOnDemand: isOnDemand,
+      erkannt_als: isOnDemand ? 'Nach Bedarf' : task.interval_type
+    });
+    
+    // Für 'Nach Bedarf' Tasks soll kein Fälligkeitsdatum berechnet werden
+    if (isOnDemand) {
+      console.log('Nach Bedarf-Task erkannt - Kein Fälligkeitsdatum wird berechnet');
+      return null;
+    }
+    
     const initialDate = new Date(task.initial_due_date);
     const today = new Date();
     let nextDate = new Date(initialDate);
-    
-    // Berechne das nächste Fälligkeitsdatum basierend auf dem Intervall
-    const intervalType = task.interval_type || (task.repeat === 'daily' ? 'daily' : 
-                         task.repeat === 'weekly' ? 'weekly' : 
-                         task.repeat === 'monthly' ? 'monthly' : null);
     
     const intervalValue = task.interval_value || 1;
     
@@ -636,16 +661,49 @@ const CleaningSchedule = ({ selectedApartment }) => {
 
     try {
       // Bereite Daten für die neue API vor
+      // Bestimme intervalType explizit basierend auf repeat
+      let intervalType = 'weekly'; // Default
+      let intervalValue = 1; // Default
+      const isOnDemand = finalTask.repeat === 'on_demand';
+      
+      console.log('TASK REPEAT TYPE CHECK:', {
+        repeat: finalTask.repeat,
+        isOnDemand: isOnDemand
+      });
+      
+      // Explizite Logik für jeden Typ statt verschachtelter Operatoren
+      if (finalTask.repeat === 'daily') {
+        intervalType = 'daily';
+      } else if (finalTask.repeat === 'weekly') {
+        intervalType = 'weekly';
+      } else if (finalTask.repeat === 'biweekly') {
+        intervalType = 'weekly';
+        intervalValue = 2;
+      } else if (finalTask.repeat === 'monthly') {
+        intervalType = 'monthly';
+      } else if (finalTask.repeat === 'on_demand') {
+        // WORKAROUND: Verwende 'custom' mit -1 für Nach-Bedarf-Tasks
+        intervalType = 'custom';
+        intervalValue = -1;
+        console.log('Nach Bedarf-Task erkannt - wird als custom mit interval_value=-1 eingestellt');
+      }
+      
+      console.log('INTERVAL TYPE MAPPING ERGEBNIS:', {
+        repeat: finalTask.repeat,
+        interval_type: intervalType,
+        interval_value: intervalValue,
+        isOnDemand: isOnDemand
+      });
+      
       const taskToAdd = {
         title: finalTask.title,
         description: finalTask.notes || '',
         points: parseInt(finalTask.points) || 5,
         isRecurring: finalTask.repeat !== 'none',
-        intervalType: finalTask.repeat === 'daily' ? 'daily' : 
-                      finalTask.repeat === 'weekly' ? 'weekly' : 
-                      finalTask.repeat === 'biweekly' ? 'weekly' : 
-                      finalTask.repeat === 'monthly' ? 'monthly' : 'weekly',
-        intervalValue: finalTask.repeat === 'biweekly' ? 2 : 1,  
+        intervalType: intervalType,
+        intervalValue: intervalValue,
+        // Debug-Eintrag für 'Nach Bedarf' Tasks
+        is_on_demand: isOnDemand,  
         color: finalTask.color || '#4a90e2',
         assignedUserId: invitedRoommates.find(r => r.name === finalTask.assignedTo)?.id,
         dueDate: finalTask.dueDate
@@ -766,16 +824,27 @@ const CleaningSchedule = ({ selectedApartment }) => {
       isDirectlyTemplate: isDirectlyTemplate // Flag für spätere Logik
     };
     
+    // Erkenne "Nach Bedarf" Tasks (custom/-1 ist "Nach Bedarf")
+    let taskRepeat = task.repeat || (task.is_recurring ? 'weekly' : 'none');
+    
+    // Prüfe, ob es sich um einen "Nach Bedarf"-Task handelt (custom/-1)
+    if (task.interval_type === 'custom' && task.interval_value === -1) {
+      console.log('"Nach Bedarf"-Task erkannt mit custom/-1');
+      taskRepeat = 'on_demand';
+    }
+    
+    console.log('Task interval_type:', task.interval_type, 'interval_value:', task.interval_value, 'erkanntes repeat:', taskRepeat);
+    
     setEditingTask(modifiedTask);
     setNewTask({
-      title: task.title,                                                // Immer bearbeitbar, wirkt sich auf Template aus
+      title: task.title,                                  // Immer bearbeitbar, wirkt sich auf Template aus
       assignedTo: task.assignedTo || (task.assignedUser ? task.assignedUser.name : ''),
       assignedToId: task.assignedToId || task.assigned_user_id,
       dueDate: task.dueDate || task.due_date,
-      points: task.points || 5,                                        // Immer bearbeitbar, wirkt sich auf Template aus
-      repeat: task.repeat || (task.is_recurring ? 'weekly' : 'none'),  // Immer bearbeitbar, wirkt sich auf Template aus
+      points: task.points || 5,                          // Immer bearbeitbar, wirkt sich auf Template aus
+      repeat: taskRepeat,                               // Erkennt jetzt "Nach Bedarf" korrekt
       customInterval: task.customInterval || '',
-      color: task.color || '#4a90e2',                                  // Immer bearbeitbar, wirkt sich auf Template aus
+      color: task.color || '#4a90e2',                    // Immer bearbeitbar, wirkt sich auf Template aus
       notes: task.notes || '',
       isEditing: true,
       // Wir vereinheitlichen den Bearbeitungsmodus - kein Unterschied mehr zwischen Template und Instanz
@@ -787,7 +856,8 @@ const CleaningSchedule = ({ selectedApartment }) => {
       isDirectlyTemplate: isDirectlyTemplate
     });
     
-    setShowCustomInterval(task.repeat === 'custom');
+    // Nur für echte benutzerdefinierte Intervalle den Bereich anzeigen, nicht für Nach-Bedarf-Tasks
+    setShowCustomInterval(taskRepeat === 'custom');
     setShowAddForm(true); // Zeige das Formular an, wenn eine Aufgabe bearbeitet wird
   };
 
@@ -2798,17 +2868,27 @@ const CleaningSchedule = ({ selectedApartment }) => {
                   </select>
                 </div>
                 
-                {/* Einheitliches Fälligkeitsdatum */}
+                {/* Einheitliches Fälligkeitsdatum - deaktiviert für 'Nach Bedarf'-Tasks */}
                 <div style={{ marginBottom: '20px' }}>
                   <label htmlFor="taskDueDate">
-                    Fällig am *
+                    Fällig am {newTask.repeat !== 'on_demand' ? '*' : ''}
+                    {newTask.repeat === 'on_demand' && (
+                      <span style={{ fontSize: '0.8rem', marginLeft: '5px', color: 'var(--text-secondary)' }}>
+                        (Nicht erforderlich für Nach-Bedarf-Tasks)
+                      </span>
+                    )}
                   </label>
                   <input
                     id="taskDueDate"
                     type="date"
                     className="input"
-                    value={newTask.dueDate}
+                    value={newTask.repeat === 'on_demand' ? '' : newTask.dueDate}
                     onChange={(e) => setNewTask({...newTask, dueDate: e.target.value})}
+                    disabled={newTask.repeat === 'on_demand'}
+                    style={{ 
+                      opacity: newTask.repeat === 'on_demand' ? 0.5 : 1,
+                      backgroundColor: newTask.repeat === 'on_demand' ? 'var(--background-alt)' : 'var(--input-bg)', 
+                    }}
                   />
                 </div>
                 
@@ -4176,50 +4256,57 @@ const CleaningSchedule = ({ selectedApartment }) => {
                       )}
                       
                       {/* Datum Layout mit Fälligkeitsbadge in einer Zeile und Wiederholungsbadge darunter */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginTop: '2px' }}>
-                        {/* Obere Zeile: Datum + Fälligkeitsbadge */}
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px'
-                        }}>
-                          <FiCalendar size={12} style={{ color: 'var(--text-secondary)' }} />
-                          <span style={{ color: 'var(--text)' }}>
-                            {(() => {
-                              // Datumsanzeige mit korrekter Zeitzone
-                              let dateValue = task.dueDate || task.due_date;
-                              let dateObj = null;
-                              
-                              if (dateValue) {
-                                try {
-                                  
-                                  // WICHTIG: ISO-Format für Datum verwenden, garantiert UTC-Interpretation
-                                  // ohne Zeitverschiebung durch Zeitzone (Problem war UTC vs lokale Zeit)
-                                  const isoDateString = `${dateValue}T12:00:00Z`;
-                                  
-                                  // Direkte Konstruktion des Datums ohne Zeitverschiebungen
-                                  const parts = dateValue.split('-');
-                                  if (parts.length === 3) {
-                                    const year = parseInt(parts[0]);
-                                    const month = parseInt(parts[1]) - 1; // Monate sind 0-basiert in JS
-                                    const day = parseInt(parts[2]);
+                      <div style={{ 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        gap: '3px', 
+                        marginTop: '2px'
+                      }}>
+                        {/* Obere Zeile: Datum + Fälligkeitsbadge - nur anzeigen, wenn KEIN Nach-Bedarf-Task */}
+                        {(task.interval_type !== 'custom' || task.interval_value !== -1) && (
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}>
+                            <FiCalendar size={12} style={{ color: 'var(--text-secondary)' }} />
+                            <span style={{ color: 'var(--text)' }}>
+                              {(() => {
+                                // Datumsanzeige mit korrekter Zeitzone
+                                let dateValue = task.dueDate || task.due_date;
+                                let dateObj = null;
+                                
+                                if (dateValue) {
+                                  try {
                                     
-                                    // Das +1 korrigiert den Zeitzonenfehler - stellt sicher, dass der Tag stimmt
-                                    dateObj = new Date(Date.UTC(year, month, day + 0));
+                                    // WICHTIG: ISO-Format für Datum verwenden, garantiert UTC-Interpretation
+                                    // ohne Zeitverschiebung durch Zeitzone (Problem war UTC vs lokale Zeit)
+                                    const isoDateString = `${dateValue}T12:00:00Z`;
+                                    
+                                    // Direkte Konstruktion des Datums ohne Zeitverschiebungen
+                                    const parts = dateValue.split('-');
+                                    if (parts.length === 3) {
+                                      const year = parseInt(parts[0]);
+                                      const month = parseInt(parts[1]) - 1; // Monate sind 0-basiert in JS
+                                      const day = parseInt(parts[2]);
+                                      
+                                      // Das +1 korrigiert den Zeitzonenfehler - stellt sicher, dass der Tag stimmt
+                                      dateObj = new Date(Date.UTC(year, month, day + 0));
+                                    }
+                                    
+                                    if (isNaN(dateObj.getTime())) dateObj = null;
+                                  } catch (e) {
+                                    console.error('Fehler beim Parsen des Datums:', e);
                                   }
-                                  
-                                  if (isNaN(dateObj.getTime())) dateObj = null;
-                                } catch (e) {
-                                  console.error('Fehler beim Parsen des Datums:', e);
                                 }
-                              }
-                              
-                              return dateObj
-                                ? dateObj.toLocaleDateString('de-DE', {day: '2-digit', month: '2-digit', year: 'numeric'})
-                                : 'Kein Datum';
-                            })()}
-                          </span>
-                        </div>
+                                
+                                return dateObj
+                                  ? dateObj.toLocaleDateString('de-DE', {day: '2-digit', month: '2-digit', year: 'numeric'})
+                                  : 'Kein Datum';
+                              })()}
+                            </span>
+                          </div>
+                        )}
                         
                         {/* Untere Zeile: Fälligkeits- und Wiederholungsbadges nebeneinander */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '3px' }}>
@@ -4385,6 +4472,12 @@ const CleaningSchedule = ({ selectedApartment }) => {
                                 // Rekonstruiere benutzerdefinierte Intervalle aus interval_type und interval_value
                                 if (task.interval_type === 'custom') {
                                   const intervalValue = task.interval_value || 1;
+                                  
+                                  // SPEZIALFALL: Nach Bedarf, erkennbar an interval_value = -1
+                                  if (intervalValue === -1) {
+                                    return 'Nach Bedarf';
+                                  }
+                                  
                                   // Formatiere einen rekonstruierten String im Format 'Xd' (X Tage)
                                   return `Alle ${intervalValue} Tage`;
                                 }

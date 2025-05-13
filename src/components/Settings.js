@@ -933,7 +933,7 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
               <p>{selectedApartment.address}</p>
 
               {/* Mitbewohner-Übersicht innerhalb der Wohnungs-Card */}
-              <div style={{ marginTop: '20px', borderTop: '1px solid var(--border)', paddingTop: '15px' }}>
+              <div style={{ marginTop: '20px', borderTop: '1px solid var(--border-color)', paddingTop: '15px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '15px' }}>
                     <FiUsers size={18} />
                     <h4 style={{ margin: 0 }}>Mitbewohner</h4>
@@ -1043,7 +1043,7 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
                 </div>
               
               {/* Apartment Management als Card-Buttons */}
-              <div style={{ marginTop: '20px', borderTop: '1px solid var(--border)', paddingTop: '15px' }}>
+              <div style={{ marginTop: '20px', borderTop: '1px solid var(--border-color)', paddingTop: '15px' }}>
                 <h4 style={{ margin: '0 0 15px 0' }}>Wohnungsverwaltung</h4>
                 
                 <div style={{
@@ -1062,7 +1062,7 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
                       justifyContent: 'center',
                       padding: '12px 8px',
                       borderRadius: 'var(--button-radius)',
-                      border: '2px solid var(--border-color)',
+                      border: '1px solid var(--border-color)',
                       cursor: 'pointer',
                       transition: 'transform 0.2s ease, background-color 0.2s ease',
                       gap: '10px',
@@ -1092,7 +1092,7 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
                       justifyContent: 'center',
                       padding: '12px 8px',
                       borderRadius: 'var(--button-radius)',
-                      border: '2px solid var(--border-color)',
+                      border: '1px solid var(--border-color)',
                       backgroundColor: selectedApartment.isOwner ? 'var(--bg-secondary)' : 'var(--bg-disabled)',
                       cursor: selectedApartment.isOwner ? 'pointer' : 'not-allowed',
                       transition: 'transform 0.2s ease, background-color 0.2s ease',
@@ -1130,7 +1130,7 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
                       justifyContent: 'center',
                       padding: '12px 8px',
                       borderRadius: 'var(--button-radius)',
-                      border: '2px solid var(--border-color)',
+                      border: '1px solid var(--border-color)',
                       backgroundColor: 'var(--bg-secondary)',
                       cursor: 'pointer',
                       transition: 'transform 0.2s ease, background-color 0.2s ease',
@@ -1297,7 +1297,7 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
                 gap: '10px',
                 width: '100%',
                 height: '80px',
-                border: theme.name === 'light' ? '2px solid var(--primary)' : '2px solid var(--border-color)'
+                border: theme.name === 'light' ? '1px solid var(--primary)' : '1px solid var(--border-color)'
               }}
               onMouseOver={(e) => {
                 if (theme.name !== 'light') {
@@ -1332,7 +1332,7 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
                 gap: '10px',
                 width: '100%',
                 height: '80px',
-                border: theme.name === 'dark' ? '2px solid var(--primary)' : '2px solid var(--border-color)'
+                border: theme.name === 'dark' ? '1px solid var(--primary)' : '1px solid var(--border-color)'
               }}
               onMouseOver={(e) => {
                 if (theme.name !== 'dark') {
@@ -1367,7 +1367,7 @@ const Settings = ({ handleLogout, currentUser: propCurrentUser, selectedApartmen
                 gap: '10px',
                 width: '100%',
                 height: '80px',
-                border: theme.name === 'cute' ? '2px solid var(--primary)' : '2px solid var(--border-color)'
+                border: theme.name === 'cute' ? '1px solid var(--primary)' : '1px solid var(--border-color)'
               }}
               onMouseOver={(e) => {
                 if (theme.name !== 'cute') {
