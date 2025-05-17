@@ -1,5 +1,19 @@
 import axios from 'axios';
-import { getBaseUrl } from './api';
+
+// API-Basis-URL - eigene Implementation, da die Funktion in api.js nicht exportiert wird
+const getBaseUrl = () => {
+  // Verwende das gleiche Protokoll wie die Seite selbst (http oder https)
+  const protocol = window.location.protocol;
+  const hostname = window.location.hostname;
+  
+  // Im Development-Modus (erkannt durch Port 3000) verwenden wir Port 5000 für Backend
+  if (window.location.port === '3000') {
+    return `${protocol}//${hostname}:5000`;
+  }
+  
+  // In Produktion verwenden wir relative URLs ohne Port
+  return `${protocol}//${hostname}`;
+};
 
 const BASE_URL = getBaseUrl();
 
