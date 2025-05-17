@@ -72,7 +72,7 @@ const notificationIntegration = {
         return await notificationService.sendNotificationToApartment(
           apartmentId,
           {
-            title: `Einkaufsliste "${listName}"`,
+            title: `${listName}`,
             body: `${senderName} hat "${itemName}" hinzugefügt.`,
             type: 'shopping_item',
             priority: 'low',
@@ -130,8 +130,8 @@ const notificationIntegration = {
         return await notificationService.sendNotificationToApartment(
           apartmentId,
           {
-            title: 'Einkaufsliste erledigt',
-            body: `${senderName} hat die Einkaufsliste "${listName}" erledigt! 🎉`,
+            title: '🎉 Yuhu! Einkaufsliste erledigt',
+            body: `${senderName} hat die Einkaufsliste "${listName}" erledigt.`,
             type: 'shopping',
             priority: 'normal',
             url: '/shopping',
@@ -185,7 +185,7 @@ const notificationIntegration = {
           apartmentId,
           {
             title: 'Neue Aufgabe erstellt',
-            body: `${senderName} hat "${taskTitle}" (${points} Punkte) erstellt. Fällig am ${formattedDate}.`,
+            body: `${senderName} hat "${taskTitle}" erstellt. Fällig am ${formattedDate}.`,
             type: 'task',
             priority: 'normal',
             url: '/cleaning',
@@ -242,16 +242,10 @@ const notificationIntegration = {
           // Fehler hier abfangen, aber weitermachen
         }
         
-        // Emoji basierend auf der Punktzahl bestimmen
-        let pointsEmoji = '⭐'; // Stern-Emoji Standard
-        if (pointsAwarded >= 10) pointsEmoji = '🌟'; // Funkelnder Stern
-        if (pointsAwarded >= 20) pointsEmoji = '💫'; // Dizzy Symbol
-        if (pointsAwarded >= 30) pointsEmoji = '💎'; // Diamant
-        
         return await notificationService.sendNotificationToApartment(
           apartmentId, {
-            title: `✅ Aufgabe erledigt (+${pointsAwarded} Punkte)`,
-            body: `${senderName} hat "${taskTitle}" abgeschlossen. ${pointsEmoji}`,
+            title: `🥳 Yuhu! Aufgabe erledigt`,
+            body: `${senderName} hat "${taskTitle}" erledigt.`,
             icon: '/icons/android-chrome-192x192.png',
             badge: '/icons/badge-128x128.png',
             data: {
@@ -301,39 +295,7 @@ const notificationIntegration = {
           userId // Wichtig: Den Absender explizit ausschließen!
         );
       } catch (error) {
-        console.warn('Fehler bei Benachrichtigung u00fcber zugewiesene Aufgabe:', error);
-      }
-    },
-    
-    onTaskDueSoon: async (taskTitle, daysLeft, apartmentId, taskId, userId = null, assignedUserName = null) => {
-      try {
-        // Nachricht anpassen, je nachdem, ob ein Benutzer zugewiesen ist
-        let bodyText = `"${taskTitle}" ist in ${daysLeft} ${daysLeft === 1 ? 'Tag' : 'Tagen'} fällig.`;
-        if (assignedUserName) {
-          bodyText = `"${taskTitle}" (zugewiesen an ${assignedUserName}) ist in ${daysLeft} ${daysLeft === 1 ? 'Tag' : 'Tagen'} fällig.`;
-        }
-        
-        return await notificationService.sendNotificationToApartment(
-          apartmentId,
-          {
-            title: 'Aufgabe bald fällig',
-            body: bodyText,
-            type: 'task',
-            priority: daysLeft <= 1 ? 'medium' : 'low',
-            url: '/cleaning',
-            tag: `task-due-${taskId}`,
-            data: {
-              taskId: taskId,
-              taskTitle: taskTitle,
-              daysLeft: daysLeft,
-              assignedUserName: assignedUserName
-            },
-            renotify: false // Nicht erneut benachrichtigen, wenn bereits gezeigt
-          },
-          userId || null // Falls kein Absender, dann null (zeigt allen)
-        );
-      } catch (error) {
-        console.warn('Fehler bei Benachrichtigung über bald fällige Aufgabe:', error);
+        console.warn('Fehler bei Benachrichtigung über zugewiesene Aufgabe:', error);
       }
     },
     
@@ -342,28 +304,12 @@ const notificationIntegration = {
       try {
         // Wenn kein Name direkt übergeben wurde, Namen auflösen
         const senderName = userName || resolveUserName(userId, apartmentId);
-        
-        // Text für geänderte Felder zusammenbauen
-        let changesText = '';
-        if (changedFields && Object.keys(changedFields).length > 0) {
-          const changes = [];
-          if (changedFields.title) changes.push('Titel');
-          if (changedFields.description) changes.push('Beschreibung');
-          if (changedFields.points) changes.push('Punkte');
-          if (changedFields.dueDate) changes.push('Fälligkeitsdatum');
-          if (changedFields.assignedUser) changes.push('Zuweisung');
-          if (changedFields.recurring) changes.push('Wiederholung');
-          
-          changesText = changes.length > 0 
-            ? ` (Geändert: ${changes.join(', ')})` 
-            : '';
-        }
-        
+
         return await notificationService.sendNotificationToApartment(
           apartmentId,
           {
             title: 'Aufgabe bearbeitet',
-            body: `${senderName} hat die Aufgabe "${taskTitle}" bearbeitet.${changesText}`,
+            body: `${senderName} hat die Aufgabe "${taskTitle}" bearbeitet.`,
             type: 'task',
             priority: 'low',
             url: '/cleaning',

@@ -638,6 +638,83 @@
   color: var(--text-secondary);
 }
 
+/* Update Notification Styles */
+.update-notification {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--card-background);
+  box-shadow: var(--shadow);
+  border-radius: var(--card-radius);
+  border: var(--glass-border);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  z-index: 1000;
+  padding: 16px;
+  max-width: 90%;
+  width: 320px;
+  animation: slide-up 0.3s ease-out;
+}
+
+.update-notification-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.update-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.update-icon {
+  color: var(--primary);
+  font-size: 24px;
+  animation: spin 2s linear infinite;
+}
+
+.update-text-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.update-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.update-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+/* Animation für Update-Notification */
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 /* Responsive Anpassungen */
 @media (max-width: 768px) {
   .balances-grid {
@@ -657,5 +734,11 @@
   .participants-checkboxes {
     flex-direction: column;
     gap: 8px;
+  }
+  
+  .update-notification {
+    width: 85%;
+    padding: 12px;
+    bottom: 15px;
   }
 }

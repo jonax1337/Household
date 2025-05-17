@@ -4,6 +4,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 require('dotenv').config();
 const { initializeDatabase } = require('./config/db');
+const { startTaskNotificationCron } = require('./jobs/taskNotifications');
 
 // Routen importieren
 const authRoutes = require('./routes/auth');
@@ -287,6 +288,17 @@ io.on('connection', (socket) => {
     console.log('Ein Benutzer hat die Verbindung getrennt:', socket.id);
   });
 });
+
+// Task Notification Cron Job starten
+const taskNotificationJob = startTaskNotificationCron();
+console.log('Task Notification Cron Job wurde gestartet');
+
+// Manueller Test beim Start (wenn entsprechende Umgebungsvariable gesetzt ist)
+if (process.env.RUN_TASK_NOTIFICATIONS_ON_STARTUP === 'true') {
+  console.log('Führe initiale Task-Benachrichtigungen aus...');
+  const { sendTaskNotifications } = require('./jobs/taskNotifications');
+  sendTaskNotifications();
+}
 
 // Server starten (mit HTTP-Server, nicht direkt mit Express)
 server.listen(PORT, () => {
