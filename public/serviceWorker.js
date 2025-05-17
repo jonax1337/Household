@@ -1,5 +1,5 @@
 // Service Worker Version für Debug
-const SW_VERSION = 'v2.1.3';
+const SW_VERSION = 'v2.1.4';
 // Version als Meta-Daten für Update-Überprüfungen
 self.SW_VERSION = SW_VERSION;
 // Cache-Namen mit Versionierung für einfache Updates
