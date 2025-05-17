@@ -40,8 +40,8 @@ router.post('/register', async (req, res) => {
       [result.insertId, 'system']
     );
     
-    // JWT erstellen
-    const token = jwt.sign({ id: result.insertId }, JWT_SECRET, { expiresIn: '1d' });
+    // JWT erstellen - gültig für 3 Monate
+    const token = jwt.sign({ id: result.insertId }, JWT_SECRET, { expiresIn: '90d' });
     
     res.status(201).json({
       message: 'Benutzer erfolgreich registriert',
@@ -79,8 +79,8 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Ungültige E-Mail oder Passwort' });
     }
     
-    // JWT erstellen
-    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '1d' });
+    // JWT erstellen - gültig für 3 Monate
+    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '90d' });
     
     res.json({
       message: 'Login erfolgreich',
@@ -130,6 +130,33 @@ router.get('/user', verifyToken, async (req, res) => {
   } catch (error) {
     console.error('Fehler beim Abrufen des Benutzers:', error);
     res.status(500).json({ message: 'Serverfehler' });
+  }
+});
+
+// Token erneuern (geschützte Route) - für Keep-Alive Sessions
+router.post('/refresh-token', verifyToken, async (req, res) => {
+  try {
+    // Benutzer-ID aus verifiziertem Token
+    const userId = req.user.id;
+    
+    // Benutzer in DB prüfen
+    const [users] = await pool.query('SELECT * FROM users WHERE id = ?', [userId]);
+    
+    if (users.length === 0) {
+      return res.status(404).json({ message: 'Benutzer nicht gefunden' });
+    }
+    
+    // Neuen Token erstellen (wieder 3 Monate gültig)
+    const token = jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '90d' });
+    
+    // Token zurückgeben
+    res.json({
+      message: 'Token erfolgreich erneuert',
+      token
+    });
+  } catch (error) {
+    console.error('Fehler beim Erneuern des Tokens:', error);
+    res.status(500).json({ message: 'Serverfehler beim Token-Refresh' });
   }
 });
 
@@ -210,8 +237,8 @@ router.post('/google', async (req, res) => {
       );
     }
     
-    // JWT erstellen
-    const token = jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '1d' });
+    // JWT erstellen - gültig für 3 Monate
+    const token = jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '90d' });
     
     // Benutzerinfos abrufen
     const [users] = await pool.query(

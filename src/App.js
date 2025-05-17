@@ -4,6 +4,7 @@ import { authService, apartmentService } from './services/api';
 import { ThemeProvider } from './context/ThemeContext';
 import { registerServiceWorker } from './serviceWorkerRegistration';
 import UpdateNotification from './components/UpdateNotification';
+import tokenService from './services/tokenService';
 
 // Importiere modulare Komponenten
 import Login from './components/Login';
@@ -34,20 +35,25 @@ function App() {
   const [inviteCode, setInviteCode] = useState('');
   const [currentUser, setCurrentUser] = useState(null);
 
-  // Service Worker registrieren ohne Benachrichtigungsanfrage
+  // Service Worker registrieren und Token-Refresh initialisieren
   useEffect(() => {
-    const initializeServiceWorker = async () => {
+    const initializeServices = async () => {
       try {
-        // Nur Service Worker registrieren ohne Benachrichtigungsanfrage
+        // Service Worker registrieren
         const registration = await registerServiceWorker();
         console.log('Service Worker ist registriert:', registration);
+        
+        // Token-Refresh-System initialisieren für die 90-Tage Sitzung
+        if (tokenService.isAuthenticated()) {
+          console.log('Token-Refresh-System wird initialisiert');
+          tokenService.initTokenRefresh();
+        }
       } catch (error) {
-        console.error('Fehler bei der Service Worker Initialisierung:', error);
+        console.error('Fehler bei der Service-Initialisierung:', error);
       }
     };
     
-    // Nur Service Worker initialisieren
-    initializeServiceWorker();
+    initializeServices();
   }, []); // Leeres Dependency-Array = einmalig beim Laden
 
   // Prüfen, ob der Benutzer bereits angemeldet ist (Token im localStorage)
@@ -62,7 +68,7 @@ function App() {
             setIsLoggedIn(true);
             loadUserApartments(); // Lade Wohnungen, wenn der Benutzer angemeldet ist
             
-            // HIER NEU: Lade Benutzerdaten aus dem localStorage
+            // Lade Benutzerdaten aus dem localStorage
             try {
               const userDataString = localStorage.getItem('currentUser');
               if (userDataString) {
@@ -242,19 +248,15 @@ function App() {
   };
 
   // Logout-Handler
-  const handleLogout = async () => {
-    try {
-      await authService.logout();
-      localStorage.removeItem('token');
-      setIsLoggedIn(false);
-      setSelectedApartment(null);
-    } catch (error) {
-      console.error('Logout fehlgeschlagen:', error);
-      // Bei Fehlern im Offline-Modus trotzdem abmelden
-      localStorage.removeItem('token');
-      setIsLoggedIn(false);
-      setSelectedApartment(null);
-    }
+  const handleLogout = () => {
+    // Token-Service zum Entfernen der Authentifizierung nutzen
+    tokenService.removeToken();
+    localStorage.clear(); // Restliche Daten löschen
+    setIsLoggedIn(false);
+    setSelectedApartment(null);
+    setApartments([]);
+    setCurrentUser(null);
+    navigate('/login');
   };
 
   // Wechsel zwischen Login und Register - nun mit Router-Navigation
